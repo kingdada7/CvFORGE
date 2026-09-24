@@ -42,7 +42,7 @@ const templates = [
   },
 ];
 
-function Home() {
+function App() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -148,4 +148,4 @@ function ResumeBlock({ title, children, meta }) {
   return <div className="resume-block"><div className="resume-block-title"><b>{title}</b>{meta && <span>{meta}</span>}</div><p>{children}</p></div>;
 }
 
-export default Home;
+export default App;
