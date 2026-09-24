@@ -18,6 +18,12 @@ const skills = ['Design Systems', 'Figma Tokens', 'React / TypeScript', 'Tailwin
 
 const tabIcons = ['♙', '≡', '▣', '⌂', '⌘', '+']
 
+const templateOptions = [
+  { id: 'modern', name: 'Modern', description: 'Clean, contemporary, and professional. Ideal for tech, product, and high-growth roles.', accent: 'bg-[#5146e5]', button: 'Active Template' },
+  { id: 'classic', name: 'Classic', description: 'Traditional and structured. Built for finance, law, consulting, and corporate leadership.', accent: 'bg-[#eef2ff]', button: 'Apply Classic Template' },
+  { id: 'minimal', name: 'Minimal', description: 'Simple, elegant, and typography-focused. Strips away all noise for maximum reading clarity.', accent: 'bg-[#eef2ff]', button: 'Apply Minimal Template' },
+]
+
 function Icon({ children, className = '' }) {
   return <span className={`inline-flex w-[17px] justify-center items-center text-brand font-serif mr-[7px] ${className}`} aria-hidden="true">{children}</span>
 }
@@ -57,6 +63,30 @@ function ExperienceEditor({ experience }) {
   )
 }
 
+function TemplatePreview({ variant }) {
+  if (variant === 'classic') {
+    return <div className="h-[425px] bg-white border border-[#eef1f6] px-3 pt-10"><div className="mx-auto h-[3px] w-[150px] bg-black mb-2" /><div className="mx-auto h-[4px] w-[170px] bg-[#7c7c83] mb-2" /><div className="h-[2px] bg-[#222] mb-2" /><div className="space-y-[6px]"><div className="h-[7px] w-[92px] bg-black" /><div className="h-[4px] w-full bg-[#dfe9fa]" /><div className="h-[4px] w-[80%] bg-[#dfe9fa]" /><div className="h-[7px] w-[110px] bg-black mt-2" /><div className="h-[4px] w-full bg-[#dfe9fa]" /><div className="h-[4px] w-[72%] bg-[#dfe9fa]" /><div className="h-[7px] w-[86px] bg-black mt-2" /><div className="h-[4px] w-full bg-[#dfe9fa]" /></div></div>
+  }
+  if (variant === 'minimal') {
+    return <div className="h-[425px] bg-white border border-[#eef1f6] px-3 pt-10"><div className="h-[13px] w-[100px] bg-black mb-2" /><div className="h-[5px] w-[130px] bg-[#777a83] mb-4" /><div className="space-y-[11px]"><div className="h-[7px] w-[50px] bg-black" /><div className="h-[5px] w-full bg-[#dfe9fa]" /><div className="h-[5px] w-[78%] bg-[#dfe9fa]" /><div className="h-[7px] w-[58px] bg-black mt-4" /><div className="h-[5px] w-full bg-[#dfe9fa]" /><div className="h-[5px] w-[75%] bg-[#dfe9fa]" /><div className="h-[7px] w-[48px] bg-black mt-4" /><div className="h-[5px] w-[90%] bg-[#dfe9fa]" /></div></div>
+  }
+  return <div className="h-[425px] bg-white border border-[#eef1f6] px-3 pt-10 relative"><div className="h-[13px] w-[110px] bg-[#12223d] rounded-[2px] mb-2" /><div className="h-[7px] w-[145px] bg-[#665bea] rounded-[2px] mb-3" /><div className="h-[7px] w-[65px] bg-[#12223d] rounded-[2px] mb-2" /><div className="space-y-[6px]"><div className="h-[5px] w-full bg-[#dfe9fa]" /><div className="h-[5px] w-[92%] bg-[#dfe9fa]" /><div className="h-[5px] w-[78%] bg-[#dfe9fa]" /><div className="h-[7px] w-[65px] bg-[#12223d] rounded-[2px] mt-3 mb-2" /><div className="h-[5px] w-full bg-[#dfe9fa]" /><div className="h-[5px] w-[87%] bg-[#dfe9fa]" /><div className="h-[7px] w-[65px] bg-[#12223d] rounded-[2px] mt-3 mb-2" /><div className="h-[5px] w-full bg-[#dfe9fa]" /></div><div className="absolute bottom-3 left-3 h-[4px] w-[45px] bg-[#cfe0ff]" /><div className="absolute bottom-3 right-3 h-[4px] w-[22px] bg-[#cfe0ff]" /></div>
+}
+
+function TemplateModal({ selectedTemplate, setSelectedTemplate, onClose, onApply }) {
+  return <div className="fixed inset-0 z-50 bg-[#20232b]/45 backdrop-blur-[4px] flex items-center justify-center p-6 max-[760px]:p-3">
+    <div className="w-full max-w-[1095px] bg-white rounded-[5px] shadow-[0_22px_60px_#151a2b45] overflow-hidden border-t-[3px] border-brand">
+      <div className="px-9 pt-5 pb-3 max-[760px]:px-5">
+        <div className="flex items-start justify-between"><div><div className="flex items-center gap-2 mb-2"><span className="bg-[#e9e6ff] text-[#3f35d5] font-mono text-[10px] font-bold tracking-[0.06em] px-1 py-[2px]">DESIGN SYSTEM</span><span className="font-mono text-[10px] text-[#5e6471]">v2.4 Editorial Layouts</span></div><h2 className="text-[22px] leading-none tracking-[-0.04em] font-bold m-0">Choose your template</h2><p className="text-[13px] text-[#505866] mt-3 mb-0">Select a layout that highlights your experience. Your content adapts automatically without re-entering<br className="max-[760px]:hidden" /> data.</p></div><button className="text-[#41454d] text-[28px] leading-none font-light px-1 -mt-1" onClick={onClose} aria-label="Close template chooser">×</button></div>
+      </div>
+      <div className="grid grid-cols-3 gap-5 px-9 py-3 max-[760px]:grid-cols-1 max-[760px]:px-5 max-[760px]:gap-3">
+        {templateOptions.map((template) => { const isSelected = selectedTemplate === template.id; return <button key={template.id} onClick={() => setSelectedTemplate(template.id)} className={`text-left rounded-[7px] p-3 pb-[10px] border bg-[#fbfcff] transition-all duration-150 ${isSelected ? 'border-[#bdb8ff] shadow-[0_2px_8px_#5a54d52a]' : 'border-[#eef1f6] hover:border-[#bdb8ff]'}`}><div className="flex items-center justify-between mb-3"><div className="flex items-center gap-1 text-[17px] font-bold"><span className={`w-[8px] h-[8px] rounded-full ${template.id === 'modern' ? 'bg-[#4f45e3]' : 'bg-[#233044]'}`} />{template.name}</div>{isSelected && <span className="bg-[#5146e5] text-white rounded-[2px] text-[10px] font-semibold px-2 py-1">✓ Selected</span>}</div><TemplatePreview variant={template.id} /><p className="text-[12px] leading-[1.45] text-[#515967] min-h-[38px] mt-[10px] mb-[9px]">{template.description}</p><span className={`block text-center rounded-[4px] text-[12px] font-semibold py-[7px] ${isSelected ? 'bg-[#5146e5] text-white' : 'bg-[#edf2ff] text-[#26344a]'}`}>{isSelected ? '◉  Active Template' : template.button}</span></button> })}
+      </div>
+      <div className="bg-[#f1f5ff] border-t border-[#e4eafa] px-9 py-3 flex items-center justify-between max-[760px]:px-5 max-[760px]:gap-3 max-[430px]:flex-col max-[430px]:items-stretch"><span className="text-[12px] text-[#657084] flex items-center"><span className="text-brand text-[17px] mr-2">◉</span>All templates are 100% ATS-friendly &amp; PDF export ready.</span><div className="flex gap-2 ml-auto"><button onClick={onClose} className="bg-white border border-[#e1e6f0] text-[#374256] rounded-[4px] px-5 py-[7px] text-[12px] font-semibold">Cancel</button><button onClick={onApply} className="bg-black text-white rounded-[4px] px-5 py-[7px] text-[12px] font-semibold">Confirm &amp; Apply&nbsp; →</button></div></div>
+    </div>
+  </div>
+}
+
 function ResumeSection({ number, title, children }) {
   return (
     <section className="mb-5">
@@ -73,6 +103,8 @@ function App() {
   const [activeTab, setActiveTab] = useState('Info')
   const [zoom, setZoom] = useState(100)
   const [isSaved, setIsSaved] = useState(true)
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(true)
+  const [selectedTemplate, setSelectedTemplate] = useState('modern')
 
   const tabs = ['Info', 'Summary', 'Exp (2)', 'Edu (1)', 'Skills (6)', 'More']
 
@@ -97,7 +129,7 @@ function App() {
           <button className={`text-[11px] flex items-center px-[9px] py-[6px] rounded-[4px] ${isSaved ? 'bg-[#f0f4ff] text-[#485575]' : 'bg-[#fff4e7] text-[#b76a18]'}`} onClick={() => setIsSaved(true)}>
             <Icon className="font-sans text-[12px]">✓</Icon>{isSaved ? 'Saved' : 'Unsaved'}
           </button>
-          <button className="text-[11px] flex items-center hidden xl:flex"><Icon className="text-ink font-sans">◈</Icon>Template</button>
+          <button onClick={() => setIsTemplateModalOpen(true)} className="text-[11px] flex items-center hidden xl:flex"><Icon className="text-ink font-sans">◈</Icon>Template</button>
           <button className="text-[11px] flex items-center hidden xl:flex"><Icon className="text-ink font-sans">▣</Icon>Preview</button>
           <button className="bg-[#090b0f] text-white text-[11px] px-[13px] py-2 rounded-[4px] flex items-center shadow-[0_2px_4px_#0002] max-[760px]:px-2 max-[760px]:text-[0px]"><Icon className="text-white font-sans max-[760px]:text-[13px] max-[760px]:!mr-0">⇩</Icon>Download PDF</button>
           <button className="text-white text-[11px] font-bold w-[26px] h-[26px] rounded-full bg-[#080a0e]" aria-label="Account">A</button>
@@ -220,7 +252,7 @@ function App() {
             <i className="h-[19px] w-px bg-[#e2e6ee]" />
             <button className="px-[7px] py-[5px] hover:text-brand">⌗ Fit</button>
             <i className="h-[19px] w-px bg-[#e2e6ee]" />
-            <button className="text-[#3d43da] bg-[#f0f2ff] rounded-md text-left leading-[1.2] px-[7px] py-[5px]">▣ &nbsp; Editorial<br />Modern</button>
+            <button onClick={() => setIsTemplateModalOpen(true)} className="text-[#3d43da] bg-[#f0f2ff] rounded-md text-left leading-[1.2] px-[7px] py-[5px]">▣ &nbsp; Editorial<br />Modern</button>
             <i className="h-[19px] w-px bg-[#e2e6ee]" />
             <button className="px-[7px] py-[5px] hover:text-brand">▦</button>
           </div>
@@ -232,6 +264,7 @@ function App() {
         <span>CVForge © 2025. Editorial Precision CV Engine. &nbsp;•&nbsp; Accounts &amp; Local Storage</span>
         <span>Privacy Manifesto &nbsp;&nbsp; Shortcuts ⌘K &nbsp;&nbsp; Plaintext / JSON Export</span>
       </footer>
+      {isTemplateModalOpen && <TemplateModal selectedTemplate={selectedTemplate} setSelectedTemplate={setSelectedTemplate} onClose={() => setIsTemplateModalOpen(false)} onApply={() => setIsTemplateModalOpen(false)} />}
     </div>
   )
 }
