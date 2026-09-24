@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 
 const initialProfile = {
   name: "Elena Rostova",
@@ -373,16 +374,13 @@ function TemplateSelector() {
             <Icon className="text-ink font-sans">▣</Icon>Preview
           </button>
           <button className="bg-[#090b0f] text-white text-[11px] px-[13px] py-2 rounded-[4px] flex items-center shadow-[0_2px_4px_#0002] max-[760px]:px-2 max-[760px]:text-[0px]">
-            <Icon className="text-white font-sans max-[760px]:text-[13px] max-[760px]:!mr-0">
-              ⇩
-            </Icon>
-            Download PDF
-          </button>
-          <button
-            className="text-white text-[11px] font-bold w-[26px] h-[26px] rounded-full bg-[#080a0e]"
-            aria-label="Account"
-          >
-            A
+            <Link to="/download">
+              {" "}
+              <Icon className="text-white font-sans max-[760px]:text-[13px] max-[760px]:!mr-0">
+                ⇩
+              </Icon>
+              Download PDF
+            </Link>
           </button>
         </div>
       </header>
