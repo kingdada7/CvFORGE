@@ -283,13 +283,12 @@ function TemplateModal({
             >
               Cancel
             </button>
-            <Link
-              to="/builder"
+            <button
               onClick={onApply}
               className="bg-black text-white rounded-[4px] px-5 py-[7px] text-[12px] font-semibold"
             >
               Confirm &amp; Apply&nbsp; →
-            </Link>
+            </button>
           </div>
         </div>
       </div>
