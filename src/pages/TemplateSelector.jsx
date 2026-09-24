@@ -269,4 +269,4 @@ function TemplateSelector() {
   )
 }
 
-export default TemplateSelctor
+export default TemplateSelector;

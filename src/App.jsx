@@ -2,6 +2,7 @@ import React from "react";
 import { Routes, Route } from "react-router";
 import Home from "./pages/Home";
 import DocumentBuilder from "./pages/DocumentBulider";
+import TemplateSelector from "./pages/TemplateSelector";
 
 const App = () => {
   return (
