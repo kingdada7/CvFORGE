@@ -98,7 +98,7 @@ function ResumeSection({ number, title, children }) {
   )
 }
 
-function App() {
+function TemplateSelector() {
   const [profile, setProfile] = useState(initialProfile)
   const [activeTab, setActiveTab] = useState('Info')
   const [zoom, setZoom] = useState(100)
@@ -269,4 +269,4 @@ function App() {
   )
 }
 
-export default App
+export default TemplateSelctor

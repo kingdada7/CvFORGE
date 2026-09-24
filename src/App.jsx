@@ -9,6 +9,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/builder" element={<DocumentBuilder />} />
+        <Route path="/template" element={<TemplateSelector/>} />
       </Routes>
     </div>
   );
