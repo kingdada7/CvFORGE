@@ -159,6 +159,7 @@ export default function CVPreview() {
 
 
 
+
 const handleDownloadPDF = async () => {
   const element = document.getElementById("cv-document");
 
@@ -170,26 +171,43 @@ const handleDownloadPDF = async () => {
   try {
     setIsDownloading(true);
 
-    // Clone the CV so we don't modify the actual preview
+    // Create a temporary wrapper
+    const wrapper = document.createElement("div");
+
+    wrapper.style.position = "fixed";
+    wrapper.style.left = "0";
+    wrapper.style.top = "0";
+    wrapper.style.width = "794px";
+    wrapper.style.background = "#ffffff";
+    wrapper.style.zIndex = "-9999";
+    wrapper.style.pointerEvents = "none";
+
+    // Clone the CV
     const clone = element.cloneNode(true);
 
-    // Position the clone off-screen
-    clone.style.position = "absolute";
-    clone.style.left = "-100000px";
-    clone.style.top = "0";
-    clone.style.width = element.offsetWidth + "px";
+    clone.style.width = "794px";
+    clone.style.minHeight = "1123px";
     clone.style.height = "auto";
+    clone.style.padding = element.style.padding;
+    clone.style.margin = "0";
+    clone.style.backgroundColor = "#ffffff";
+    clone.style.color = "#0f172a";
+    clone.style.border = "none";
+    clone.style.boxShadow = "none";
     clone.style.transform = "none";
 
-    document.body.appendChild(clone);
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
 
-    // Find every element inside the cloned CV
+    // Give the browser a moment to render the clone
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Replace unsupported OKLCH colors
     const allElements = clone.querySelectorAll("*");
 
     allElements.forEach((el) => {
       const styles = window.getComputedStyle(el);
 
-      // Convert problematic OKLCH colors to safe RGB colors
       if (styles.color.includes("oklch")) {
         el.style.color = "#0f172a";
       }
@@ -206,12 +224,6 @@ const handleDownloadPDF = async () => {
         el.style.boxShadow = "none";
       }
     });
-
-    // Also make the main CV background safe
-    clone.style.backgroundColor = "#ffffff";
-    clone.style.color = "#0f172a";
-    clone.style.borderColor = "#e2e8f0";
-    clone.style.boxShadow = "none";
 
     const safeName =
       fullName
@@ -235,6 +247,10 @@ const handleDownloadPDF = async () => {
           useCORS: true,
           backgroundColor: "#ffffff",
           logging: false,
+
+          // Important for the cloned element
+          width: 794,
+          windowWidth: 794,
         },
 
         jsPDF: {
@@ -250,8 +266,8 @@ const handleDownloadPDF = async () => {
       .from(clone)
       .save();
 
-    // Remove temporary clone
-    document.body.removeChild(clone);
+    // Clean up
+    document.body.removeChild(wrapper);
 
     console.log("PDF DOWNLOAD SUCCESS");
   } catch (error) {
@@ -261,6 +277,7 @@ const handleDownloadPDF = async () => {
     setIsDownloading(false);
   }
 };
+
 
 
 
