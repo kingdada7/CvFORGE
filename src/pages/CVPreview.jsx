@@ -1,282 +1,610 @@
-import React, { useState } from "react";
+
+import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
+import html2pdf from "html2pdf.js";
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  Download,
+  FileText,
+  Minus,
+  Plus,
+  Printer,
+  ShieldCheck,
+} from "lucide-react";
+
+// Change this import path if your utility lives somewhere else.
+import { getCVData } from "../utils/cvStorage";
 
 export default function CVPreview() {
+  const navigate = useNavigate();
+
   const [format, setFormat] = useState("pdf");
   const [paper, setPaper] = useState("a4");
   const [margins, setMargins] = useState("balanced");
+  const [zoom, setZoom] = useState(100);
+  const [copied, setCopied] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const cvData = useMemo(() => {
+    return getCVData() || {};
+  }, []);
+
+  const profile = cvData.profile || {};
+  const experience = cvData.experience || [];
+  const education = cvData.education || [];
+  const skills = cvData.skills || [];
+
+  const fullName =
+    profile.name ||
+    `${profile.firstName || ""} ${profile.lastName || ""}`.trim() ||
+    "Your Name";
+
+  const jobTitle =
+    profile.title ||
+    profile.jobTitle ||
+    "Professional Title";
+
+  const summary =
+    profile.summary ||
+    "Add a professional summary to introduce your experience, skills, and career goals.";
+
+  const email = profile.email || "email@example.com";
+  const phone = profile.phone || "+234 000 000 0000";
+  const location = profile.location || "Lagos, Nigeria";
+  const website = profile.website || profile.linkedin || "";
+
+  /*
+   * Converts the CV data into plain text.
+   * This is useful for ATS text copying and can also be
+   * reused later for a .txt export.
+   */
+  const getATSText = () => {
+    const lines = [];
+
+    lines.push(fullName);
+    lines.push(jobTitle);
+    lines.push("");
+    lines.push(`${location} | ${email} | ${phone}`);
+
+    if (website) {
+      lines.push(website);
+    }
+
+    lines.push("");
+    lines.push("PROFESSIONAL SUMMARY");
+    lines.push(summary);
+
+    if (experience.length > 0) {
+      lines.push("");
+      lines.push("EXPERIENCE");
+
+      experience.forEach((job) => {
+        lines.push(
+          `${job.position || job.title || "Position"} — ${
+            job.company || "Company"
+          }`
+        );
+
+        if (job.startDate || job.endDate) {
+          lines.push(
+            `${job.startDate || ""} — ${job.endDate || "Present"}`
+          );
+        }
+
+        if (job.description) {
+          lines.push(job.description);
+        }
+
+        if (Array.isArray(job.responsibilities)) {
+          job.responsibilities.forEach((item) => {
+            lines.push(`• ${item}`);
+          });
+        }
+      });
+    }
+
+    if (skills.length > 0) {
+      lines.push("");
+      lines.push("SKILLS");
+
+      const skillNames = skills.map((skill) => {
+        if (typeof skill === "string") return skill;
+        return skill.name || skill.title || "";
+      });
+
+      lines.push(skillNames.filter(Boolean).join(", "));
+    }
+
+    if (education.length > 0) {
+      lines.push("");
+      lines.push("EDUCATION");
+
+      education.forEach((school) => {
+        lines.push(
+          `${school.degree || school.program || "Degree"} — ${
+            school.school || school.institution || "Institution"
+          }`
+        );
+
+        if (school.startDate || school.endDate) {
+          lines.push(
+            `${school.startDate || ""} — ${school.endDate || ""}`
+          );
+        }
+      });
+    }
+
+    return lines.join("\n");
+  };
+
+  const handleCopyATS = async () => {
+    try {
+      await navigator.clipboard.writeText(getATSText());
+
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to copy ATS text:", error);
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+
+
+const handleDownloadPDF = async () => {
+  const element = document.getElementById("cv-document");
+
+  if (!element) {
+    alert("CV document was not found.");
+    return;
+  }
+
+  try {
+    setIsDownloading(true);
+
+    // Clone the CV so we don't modify the actual preview
+    const clone = element.cloneNode(true);
+
+    // Position the clone off-screen
+    clone.style.position = "absolute";
+    clone.style.left = "-100000px";
+    clone.style.top = "0";
+    clone.style.width = element.offsetWidth + "px";
+    clone.style.height = "auto";
+    clone.style.transform = "none";
+
+    document.body.appendChild(clone);
+
+    // Find every element inside the cloned CV
+    const allElements = clone.querySelectorAll("*");
+
+    allElements.forEach((el) => {
+      const styles = window.getComputedStyle(el);
+
+      // Convert problematic OKLCH colors to safe RGB colors
+      if (styles.color.includes("oklch")) {
+        el.style.color = "#0f172a";
+      }
+
+      if (styles.backgroundColor.includes("oklch")) {
+        el.style.backgroundColor = "#ffffff";
+      }
+
+      if (styles.borderColor.includes("oklch")) {
+        el.style.borderColor = "#e2e8f0";
+      }
+
+      if (styles.boxShadow.includes("oklch")) {
+        el.style.boxShadow = "none";
+      }
+    });
+
+    // Also make the main CV background safe
+    clone.style.backgroundColor = "#ffffff";
+    clone.style.color = "#0f172a";
+    clone.style.borderColor = "#e2e8f0";
+    clone.style.boxShadow = "none";
+
+    const safeName =
+      fullName
+        .replace(/[^a-z0-9]/gi, "_")
+        .replace(/_+/g, "_")
+        .replace(/^_|_$/g, "") || "CV";
+
+    await html2pdf()
+      .set({
+        margin: 0,
+
+        filename: `${safeName}_CV.pdf`,
+
+        image: {
+          type: "jpeg",
+          quality: 0.98,
+        },
+
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          logging: false,
+        },
+
+        jsPDF: {
+          unit: "mm",
+          format: paper === "a4" ? "a4" : "letter",
+          orientation: "portrait",
+        },
+
+        pagebreak: {
+          mode: ["css", "legacy"],
+        },
+      })
+      .from(clone)
+      .save();
+
+    // Remove temporary clone
+    document.body.removeChild(clone);
+
+    console.log("PDF DOWNLOAD SUCCESS");
+  } catch (error) {
+    console.error("PDF generation failed:", error);
+    alert("PDF generation failed. Check the console.");
+  } finally {
+    setIsDownloading(false);
+  }
+};
+
+
+
+
+
+
+  const handleZoomIn = () => {
+    setZoom((current) => Math.min(current + 10, 150));
+  };
+
+  const handleZoomOut = () => {
+    setZoom((current) => Math.max(current - 10, 50));
+  };
+
+  const pageWidth = paper === "a4" ? "210mm" : "8.5in";
+  const pageHeight = paper === "a4" ? "297mm" : "11in";
+
+  const pagePadding = margins === "balanced" ? "18mm" : "12mm";
 
   return (
     <div className="min-h-screen bg-[#f0f4f8] font-sans text-slate-800">
-      {/* ===== TOP BAR ===== */}
-      <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-slate-200 text-sm">
+      {/* =====================================================
+          TOP BAR
+      ====================================================== */}
+      <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-slate-200 text-sm print:hidden">
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900">
-            <span className="text-lg leading-none">←</span>
+          <button
+            onClick={() => navigate("/builder")}
+            className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900"
+          >
+            <ArrowLeft size={16} />
             <span>Back to Builder</span>
           </button>
+
           <div className="flex items-center gap-2 bg-slate-100 rounded-md px-2.5 py-1">
-            <span className="text-blue-600">📄</span>
-            <span className="font-medium">Elena_Rostova_Staff_Product_Designer_2025.pdf</span>
-            <span className="text-slate-500 text-xs">142 KB</span>
+            <FileText size={15} className="text-blue-600" />
+
+            <span className="font-medium">
+              {fullName.replace(/\s+/g, "_")}_CV.pdf
+            </span>
+
+            <span className="text-slate-500 text-xs">
+              Ready
+            </span>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            ATS Score 98/100
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            CV Ready
           </div>
-          <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full text-xs font-medium">
-            <span>◎</span>
-            1 Page Exact Fit 0.0mm overflow
-          </div>
+
           <div className="flex items-center gap-1 bg-slate-100 rounded-md px-2 py-1">
-            <button className="px-1.5 hover:bg-slate-200 rounded">−</button>
-            <span className="w-10 text-center text-xs">100%</span>
-            <button className="px-1.5 hover:bg-slate-200 rounded">+</button>
+            <button
+              onClick={handleZoomOut}
+              disabled={zoom <= 50}
+              className="px-1.5 hover:bg-slate-200 rounded disabled:opacity-40"
+            >
+              <Minus size={14} />
+            </button>
+
+            <span className="w-10 text-center text-xs">
+              {zoom}%
+            </span>
+
+            <button
+              onClick={handleZoomIn}
+              disabled={zoom >= 150}
+              className="px-1.5 hover:bg-slate-200 rounded disabled:opacity-40"
+            >
+              <Plus size={14} />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ===== MAIN CONTENT ===== */}
+      {/* =====================================================
+          MAIN CONTENT
+      ====================================================== */}
       <div className="flex gap-6 p-6 max-w-[1600px] mx-auto">
-        {/* LEFT – CV PREVIEW */}
-        <div className="flex-1">
-          <div className="bg-white shadow-xl rounded-sm overflow-hidden border border-slate-200">
-            {/* Page header meta */}
-            <div className="px-8 pt-4 pb-2 flex justify-between text-[11px] text-slate-500">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                <span>ISO 216 • A4 (210 × 297 mm) • Monospaced & Geometric Precision Grid</span>
-              </div>
-              <span>Vector Preview Mode</span>
-            </div>
-
-            {/* Actual CV content */}
-            <div className="px-10 pb-10 pt-2">
-              {/* Header */}
-              <div className="flex justify-between items-start mb-6">
-                <div>
+        {/* ===================================================
+            CV PREVIEW
+        ==================================================== */}
+        <div className="flex-1 overflow-auto">
+          <div
+            className="mx-auto transition-transform origin-top"
+            style={{
+              width: pageWidth,
+              transform: `scale(${zoom / 100})`,
+              marginBottom: `${(zoom - 100) * 2}px`,
+            }}
+          >
+            <div
+              id="cv-document"
+              className="bg-white shadow-xl border border-slate-200"
+              style={{
+                minHeight: pageHeight,
+                padding: pagePadding,
+              }}
+            >
+              {/* ================= HEADER ================= */}
+              <header className="flex justify-between items-start gap-8 mb-8">
+                <div className="min-w-0">
                   <h1 className="text-[32px] font-bold tracking-tight text-slate-900 leading-none">
-                    Elena Rostova<span className="text-blue-600">•</span>
+                    {fullName}
+                    <span className="text-blue-600">•</span>
                   </h1>
-                  <p className="text-blue-600 font-medium text-[15px] mt-1">
-                    Staff Product Designer & Design Systems Architect
+
+                  <p className="text-blue-600 font-medium text-[15px] mt-2">
+                    {jobTitle}
                   </p>
-                  <p className="text-slate-600 text-[13px] mt-2 max-w-xl leading-snug">
-                    Pioneering systems-driven workflows, multi-platform design architectures, and low-
-                    latency interaction models across high-growth enterprise infrastructure.
+
+                  <p className="text-slate-600 text-[13px] mt-2 leading-snug max-w-xl">
+                    {summary}
                   </p>
                 </div>
-                <div className="text-right text-[12px] text-slate-600 leading-relaxed">
-                  <div className="font-medium text-slate-800">Zurich, Switzerland</div>
-                  <div>elena.rostova@engineer.ch</div>
-                  <div>+41 44 829 1042</div>
-                  <div className="text-blue-600">github.com/rostova</div>
-                </div>
-              </div>
 
-              {/* PROFESSIONAL TRAJECTORY */}
-              <section className="mb-7">
-                <div className="flex justify-between items-baseline border-b border-slate-200 pb-1 mb-3">
-                  <h2 className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
-                    Professional Trajectory
-                  </h2>
-                  <span className="text-[11px] text-slate-500">2018 — Present</span>
-                </div>
-
-                {/* Job 1 */}
-                <div className="mb-5">
-                  <div className="flex justify-between items-baseline">
-                    <h3 className="font-semibold text-[15px]">
-                      Staff Design Systems Lead{" "}
-                      <span className="font-normal text-slate-500">• Syntropy Cloud AG</span>
-                    </h3>
-                    <span className="text-[12px] text-slate-500">2022 — Present</span>
+                <div className="text-right text-[12px] text-slate-600 leading-relaxed flex-shrink-0">
+                  <div className="font-medium text-slate-800">
+                    {location}
                   </div>
-                  <ul className="mt-1.5 space-y-1 text-[13px] text-slate-700 leading-snug">
-                    <li className="flex gap-2">
-                      <span className="text-slate-400 mt-0.5">•</span>
-                      <span>
-                        Engineered unified design tokens and multi-framework distribution pipelines powering 42 micro-
-                        frontends with zero regression velocity.
-                      </span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-slate-400 mt-0.5">•</span>
-                      <span>
-                        Reduced runtime bundle overhead by 34% by establishing native web component primitives and
-                        automated headless design telemetry.
-                      </span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-slate-400 mt-0.5">•</span>
-                      <span>
-                        Architected cross-functional sync workflows with 200+ product engineers, reducing time-to-production
-                        for net-new patterns by 60%.
-                      </span>
-                    </li>
-                  </ul>
-                </div>
 
-                {/* Job 2 */}
-                <div className="mb-5">
-                  <div className="flex justify-between items-baseline">
-                    <h3 className="font-semibold text-[15px]">
-                      Senior Interaction Designer{" "}
-                      <span className="font-normal text-slate-500">• Kinetix Precision Software</span>
-                    </h3>
-                    <span className="text-[12px] text-slate-500">2019 — 2022</span>
-                  </div>
-                  <ul className="mt-1.5 space-y-1 text-[13px] text-slate-700 leading-snug">
-                    <li className="flex gap-2">
-                      <span className="text-slate-400 mt-0.5">•</span>
-                      <span>
-                        Led core interaction models for high-frequency financial modeling interfaces operating under strict sub-
-                        16ms render budgets.
-                      </span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-slate-400 mt-0.5">•</span>
-                      <span>
-                        Constructed accessibility test harnesses resulting in 100% WCAG 2.1 AAA compliance rating across all
-                        client-facing data dashboards.
-                      </span>
-                    </li>
-                  </ul>
-                </div>
+                  <div>{email}</div>
 
-                {/* Job 3 */}
-                <div>
-                  <div className="flex justify-between items-baseline">
-                    <h3 className="font-semibold text-[15px]">
-                      Product Interface Specialist{" "}
-                      <span className="font-normal text-slate-500">• VectorLab Studio</span>
-                    </h3>
-                    <span className="text-[12px] text-slate-500">2018 — 2019</span>
-                  </div>
-                  <ul className="mt-1.5 space-y-1 text-[13px] text-slate-700 leading-snug">
-                    <li className="flex gap-2">
-                      <span className="text-slate-400 mt-0.5">•</span>
-                      <span>
-                        Designed desktop-first CAD navigation palettes and bespoke vector visualization widgets for
-                        architectural engineering software.
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-              </section>
+                  <div>{phone}</div>
 
-              {/* SYSTEMS & TECHNICAL CAPABILITIES */}
-              <section className="mb-7">
-                <h2 className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase border-b border-slate-200 pb-1 mb-3">
-                  Systems & Technical Capabilities
-                </h2>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-slate-50 rounded-md p-3">
-                    <div className="text-[12px] font-semibold text-slate-800 mb-1">Architecture & Tokens</div>
-                    <div className="text-[11px] text-slate-600 leading-tight">
-                      Design Tokens (W3C), Tailwind
-                      <br />
-                      CSS, Figma Variables, Web
-                      <br />
-                      Components, Stencil
+                  {website && (
+                    <div className="text-blue-600">
+                      {website}
                     </div>
-                  </div>
-                  <div className="bg-slate-50 rounded-md p-3">
-                    <div className="text-[12px] font-semibold text-slate-800 mb-1">Frontend Prototyping</div>
-                    <div className="text-[11px] text-slate-600 leading-tight">
-                      TypeScript, React, Canvas 2D,
-                      <br />
-                      SVG DOM, Performance
-                      <br />
-                      Profiling, Headless UI
-                    </div>
-                  </div>
-                  <div className="bg-slate-50 rounded-md p-3">
-                    <div className="text-[12px] font-semibold text-slate-800 mb-1">Operational Methods</div>
-                    <div className="text-[11px] text-slate-600 leading-tight">
-                      Semantic Versioning, Micro-
-                      <br />
-                      Interactions, WCAG 2.2 AAA
-                      <br />
-                      Audit, ATS Typography
-                    </div>
-                  </div>
+                  )}
                 </div>
-              </section>
+              </header>
 
-              {/* ACADEMIC BACKGROUND */}
-              <section>
-                <h2 className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase border-b border-slate-200 pb-1 mb-3">
-                  Academic Background & Honors
-                </h2>
-                <div className="flex justify-between items-baseline">
-                  <div>
-                    <h3 className="font-semibold text-[15px]">
-                      M.Sc. Human-Computer Interaction & Cognitive Systems
-                    </h3>
-                    <p className="text-[13px] text-slate-600 mt-0.5">
-                      ETH Zurich • Summa Cum Laude
+              {/* ================= EXPERIENCE ================= */}
+              {experience.length > 0 && (
+                <section className="mb-7">
+                  <SectionTitle title="Professional Experience" />
+
+                  {experience.map((job, index) => (
+                    <div
+                      key={job.id || index}
+                      className={
+                        index !== experience.length - 1
+                          ? "mb-5"
+                          : ""
+                      }
+                    >
+                      <div className="flex justify-between items-baseline gap-4">
+                        <h3 className="font-semibold text-[15px]">
+                          {job.position ||
+                            job.title ||
+                            "Position"}
+
+                          {job.company && (
+                            <span className="font-normal text-slate-500">
+                              {" "}
+                              • {job.company}
+                            </span>
+                          )}
+                        </h3>
+
+                        {(job.startDate || job.endDate) && (
+                          <span className="text-[12px] text-slate-500 whitespace-nowrap">
+                            {job.startDate || ""} —{" "}
+                            {job.endDate || "Present"}
+                          </span>
+                        )}
+                      </div>
+
+                      {job.description && (
+                        <p className="mt-1.5 text-[13px] text-slate-700 leading-snug">
+                          {job.description}
+                        </p>
+                      )}
+
+                      {Array.isArray(job.responsibilities) &&
+                        job.responsibilities.length > 0 && (
+                          <ul className="mt-1.5 space-y-1 text-[13px] text-slate-700 leading-snug">
+                            {job.responsibilities.map(
+                              (item, responsibilityIndex) => (
+                                <li
+                                  key={responsibilityIndex}
+                                  className="flex gap-2"
+                                >
+                                  <span className="text-slate-400">
+                                    •
+                                  </span>
+
+                                  <span>{item}</span>
+                                </li>
+                              )
+                            )}
+                          </ul>
+                        )}
+                    </div>
+                  ))}
+                </section>
+              )}
+
+              {/* ================= SKILLS ================= */}
+              {skills.length > 0 && (
+                <section className="mb-7">
+                  <SectionTitle title="Skills & Technical Capabilities" />
+
+                  <div className="flex flex-wrap gap-2">
+                    {skills.map((skill, index) => {
+                      const name =
+                        typeof skill === "string"
+                          ? skill
+                          : skill.name ||
+                            skill.title ||
+                            "";
+
+                      if (!name) return null;
+
+                      return (
+                        <span
+                          key={skill.id || index}
+                          className="bg-slate-50 border border-slate-200 rounded-md px-3 py-1.5 text-[12px] text-slate-700"
+                        >
+                          {name}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
+              {/* ================= EDUCATION ================= */}
+              {education.length > 0 && (
+                <section>
+                  <SectionTitle title="Education" />
+
+                  {education.map((school, index) => (
+                    <div
+                      key={school.id || index}
+                      className="flex justify-between items-baseline gap-4"
+                    >
+                      <div>
+                        <h3 className="font-semibold text-[15px]">
+                          {school.degree ||
+                            school.program ||
+                            "Degree"}
+                        </h3>
+
+                        <p className="text-[13px] text-slate-600 mt-0.5">
+                          {school.school ||
+                            school.institution ||
+                            "Institution"}
+                        </p>
+                      </div>
+
+                      {(school.startDate ||
+                        school.endDate) && (
+                        <span className="text-[12px] text-slate-500 whitespace-nowrap">
+                          {school.startDate || ""} —{" "}
+                          {school.endDate || ""}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </section>
+              )}
+
+              {/* Empty CV state */}
+              {experience.length === 0 &&
+                skills.length === 0 &&
+                education.length === 0 && (
+                  <div className="py-20 text-center text-slate-400">
+                    <FileText
+                      size={40}
+                      className="mx-auto mb-3"
+                    />
+
+                    <p className="font-medium">
+                      Your CV content will appear here.
+                    </p>
+
+                    <p className="text-sm mt-1">
+                      Go back to the builder and add your
+                      information.
                     </p>
                   </div>
-                  <span className="text-[12px] text-slate-500">2016 — 2018</span>
-                </div>
-              </section>
+                )}
             </div>
-
-            {/* Footer of the page */}
-            <div className="px-10 py-3 border-t border-slate-100 flex justify-between text-[10px] text-slate-400">
-              <span>Compiled via CVForge Engine v3.4.1</span>
-              <span>PAGE 01 / 01 • REVISION H</span>
-              <span>Checksum: a7f893e • 300 DPI Vector</span>
-            </div>
-          </div>
-
-          {/* Bottom helper text */}
-          <div className="mt-3 flex justify-between text-[11px] text-slate-500 px-1">
-            <span>Click & drag document text to inspect selectable vector paths</span>
-            <span className="flex items-center gap-1">
-              <span className="text-blue-500">⚡</span>
-              Zero font rasterization artifacts detected
-            </span>
           </div>
         </div>
 
-        {/* RIGHT – EXPORT PANEL */}
-        <div className="w-[380px] flex-shrink-0">
+        {/* ===================================================
+            EXPORT PANEL
+        ==================================================== */}
+        <div className="w-[380px] flex-shrink-0 print:hidden">
           <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
             {/* Header */}
             <div className="px-5 pt-5 pb-4 flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-blue-600 text-lg">⧉</span>
-                  <h2 className="text-lg font-semibold text-slate-900">Export Your CV</h2>
+                  <Download
+                    size={19}
+                    className="text-blue-600"
+                  />
+
+                  <h2 className="text-lg font-semibold text-slate-900">
+                    Export Your CV
+                  </h2>
                 </div>
+
                 <p className="text-[13px] text-slate-500 mt-1">
-                  High-fidelity vector pipeline ready for production distribution.
+                  Choose your document format and page
+                  settings.
                 </p>
               </div>
+
               <span className="text-[10px] font-medium bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                v.300DPI
+                CVForge
               </span>
             </div>
 
-            {/* Compilation status */}
+            {/* Status */}
             <div className="mx-5 mb-5 bg-blue-50 border border-blue-100 rounded-lg p-3">
               <div className="flex items-center justify-between text-[13px] mb-1.5">
                 <div className="flex items-center gap-1.5 text-blue-700 font-medium">
-                  <span className="text-emerald-500">✓</span>
-                  Compilation Complete
+                  <Check
+                    size={15}
+                    className="text-emerald-500"
+                  />
+
+                  CV Ready
                 </div>
-                <span className="font-semibold text-blue-800">100%</span>
+
+                <span className="font-semibold text-blue-800">
+                  100%
+                </span>
               </div>
+
               <div className="h-1.5 bg-blue-200 rounded-full overflow-hidden">
-                <div className="h-full w-full bg-blue-600 rounded-full"></div>
+                <div className="h-full w-full bg-blue-600 rounded-full" />
               </div>
+
               <p className="text-[11px] text-blue-700/80 mt-2 leading-snug">
-                Vector typography compiled at 300 DPI. Ready for instant digital
-                submission and precision offset printing.
+                Your CV is ready to export. You can download,
+                print, or copy the ATS-friendly text.
               </p>
             </div>
 
@@ -285,77 +613,38 @@ export default function CVPreview() {
               <h3 className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase mb-2.5">
                 Document Format
               </h3>
-              <div className="grid grid-cols-2 gap-2.5">
-                <button
-                  onClick={() => setFormat("pdf")}
-                  className={`relative text-left p-3 rounded-lg border transition-all ${
-                    format === "pdf"
-                      ? "border-blue-500 bg-blue-50/50 shadow-sm"
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold text-[13px]">PDF Document</span>
-                    <span
-                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        format === "pdf" ? "border-blue-600" : "border-slate-300"
-                      }`}
-                    >
-                      {format === "pdf" && (
-                        <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-                      )}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-600 leading-tight">
-                    Print-ready vector PDF. Crisp font
-                    <br />
-                    embeds & exact margins.
-                  </p>
-                  <div className="mt-2 text-[10px] text-blue-600 font-medium flex items-center gap-1">
-                    <span>✦</span> Recommended
-                  </div>
-                </button>
 
-                <button
+              <div className="grid grid-cols-2 gap-2.5">
+                <FormatButton
+                  active={format === "pdf"}
+                  onClick={() => setFormat("pdf")}
+                  title="PDF Document"
+                  description="Print-ready PDF document."
+                  icon={<FileText size={15} />}
+                />
+
+                <FormatButton
+                  active={format === "text"}
                   onClick={() => setFormat("text")}
-                  className={`relative text-left p-3 rounded-lg border transition-all ${
-                    format === "text"
-                      ? "border-blue-500 bg-blue-50/50 shadow-sm"
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold text-[13px]">Plain Text</span>
-                    <span
-                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        format === "text" ? "border-blue-600" : "border-slate-300"
-                      }`}
-                    >
-                      {format === "text" && (
-                        <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-                      )}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-600 leading-tight">
-                    Raw UTF-8 string format for legacy
-                    <br />
-                    keyword parsing bots.
-                  </p>
-                  <div className="mt-2 text-[10px] text-slate-500 flex items-center gap-1">
-                    <span>📄</span> 0 KB Assets
-                  </div>
-                </button>
+                  title="Plain Text"
+                  description="ATS-friendly text format."
+                  icon={<FileText size={15} />}
+                />
               </div>
             </div>
 
-            {/* PAPER DIMENSION */}
+            {/* PAPER */}
             <div className="px-5 mb-5">
               <div className="flex justify-between items-center mb-2.5">
                 <h3 className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
                   Paper Dimension
                 </h3>
-                <span className="text-[10px] text-slate-400">Global Standard</span>
+
+                <span className="text-[10px] text-slate-400">
+                  Standard
+                </span>
               </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setPaper("a4")}
@@ -365,8 +654,12 @@ export default function CVPreview() {
                       : "border-slate-200 text-slate-700 hover:border-slate-300"
                   }`}
                 >
-                  A4 (210 × 297 mm)
+                  A4
+                  <span className="block text-[10px] font-normal mt-0.5">
+                    210 × 297 mm
+                  </span>
                 </button>
+
                 <button
                   onClick={() => setPaper("us")}
                   className={`py-2.5 text-center text-[13px] font-medium rounded-md border transition-all ${
@@ -375,19 +668,28 @@ export default function CVPreview() {
                       : "border-slate-200 text-slate-700 hover:border-slate-300"
                   }`}
                 >
-                  US Letter (8.5 × 11")
+                  US Letter
+                  <span className="block text-[10px] font-normal mt-0.5">
+                    8.5 × 11"
+                  </span>
                 </button>
               </div>
             </div>
 
-            {/* PAGE MARGINS */}
+            {/* MARGINS */}
             <div className="px-5 mb-6">
               <div className="flex justify-between items-center mb-2.5">
                 <h3 className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
-                  Page Margins & Density
+                  Page Margins
                 </h3>
-                <span className="text-[10px] text-slate-400">Balanced (18mm)</span>
+
+                <span className="text-[10px] text-slate-400">
+                  {margins === "balanced"
+                    ? "18mm"
+                    : "12mm"}
+                </span>
               </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setMargins("balanced")}
@@ -397,8 +699,12 @@ export default function CVPreview() {
                       : "border-slate-200 text-slate-700 hover:border-slate-300"
                   }`}
                 >
-                  Balanced (18mm)
+                  Balanced
+                  <span className="block text-[10px] font-normal mt-0.5">
+                    18mm
+                  </span>
                 </button>
+
                 <button
                   onClick={() => setMargins("compact")}
                   className={`py-2.5 text-center text-[13px] font-medium rounded-md border transition-all ${
@@ -407,43 +713,165 @@ export default function CVPreview() {
                       : "border-slate-200 text-slate-700 hover:border-slate-300"
                   }`}
                 >
-                  Compact (12mm)
+                  Compact
+                  <span className="block text-[10px] font-normal mt-0.5">
+                    12mm
+                  </span>
                 </button>
               </div>
             </div>
 
             {/* ACTIONS */}
             <div className="px-5 pb-5 space-y-2.5">
-              <button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors">
-                <span>↓</span>
-                Download PDF (Instant)
-              </button>
+              {format === "pdf" ? (
+                <button
+                  onClick={handleDownloadPDF}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Download size={17} />
+                  Download PDF
+                </button>
+              ) : (
+                <button
+                  onClick={handleCopyATS}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                >
+                  {copied ? (
+                    <>
+                      <Check size={17} />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={17} />
+                      Copy ATS Text
+                    </>
+                  )}
+                </button>
+              )}
+
               <div className="grid grid-cols-2 gap-2.5">
-                <button className="py-2.5 border border-slate-200 rounded-lg text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5">
-                  <span>⧉</span>
+                <button
+                  onClick={handleCopyATS}
+                  className="py-2.5 border border-slate-200 rounded-lg text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"
+                >
+                  <Copy size={15} />
                   Copy ATS Text
                 </button>
-                <button className="py-2.5 border border-slate-200 rounded-lg text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5">
-                  <span>🖨</span>
-                  Print Directly
+
+                <button
+                  onClick={handlePrint}
+                  className="py-2.5 border border-slate-200 rounded-lg text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"
+                >
+                  <Printer size={15} />
+                  Print
                 </button>
               </div>
             </div>
 
-            {/* Privacy note */}
+            {/* PRIVACY */}
             <div className="mx-5 mb-5 bg-slate-50 border border-slate-200 rounded-lg p-3 flex gap-2.5">
-              <span className="text-slate-400 mt-0.5">🔒</span>
+              <ShieldCheck
+                size={17}
+                className="text-slate-400 mt-0.5 flex-shrink-0"
+              />
+
               <div className="text-[11px] text-slate-600 leading-snug">
-                <span className="font-medium text-slate-800">Zero Account Required • 100% Client-Side</span>
+                <span className="font-medium text-slate-800">
+                  Client-Side CV Builder
+                </span>
+
                 <br />
-                Your sensitive career trajectory data never touches our cloud servers.
-                All rendering logic executes privately within your local browser
-                runtime.
+
+                Your CV data is processed in the browser
+                while you build and export your document.
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* =====================================================
+          PRINT STYLES
+      ====================================================== */}
+      <style>{`
+        @media print {
+          @page {
+            size: ${paper === "a4" ? "A4" : "Letter"};
+            margin: 0;
+          }
+
+          body {
+            background: white !important;
+          }
+
+          #cv-document {
+            width: ${pageWidth} !important;
+            min-height: ${pageHeight} !important;
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 !important;
+          }
+        }
+      `}</style>
     </div>
+  );
+}
+
+/* ============================================================
+   SECTION TITLE
+============================================================ */
+
+function SectionTitle({ title }) {
+  return (
+    <h2 className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase border-b border-slate-200 pb-1 mb-3">
+      {title}
+    </h2>
+  );
+}
+
+/* ============================================================
+   FORMAT BUTTON
+============================================================ */
+
+function FormatButton({
+  active,
+  onClick,
+  title,
+  description,
+  icon,
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative text-left p-3 rounded-lg border transition-all ${
+        active
+          ? "border-blue-500 bg-blue-50/50 shadow-sm"
+          : "border-slate-200 hover:border-slate-300"
+      }`}
+    >
+      <div className="flex items-center justify-between mb-1">
+        <span className="font-semibold text-[13px] flex items-center gap-1.5">
+          {icon}
+          {title}
+        </span>
+
+        <span
+          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+            active
+              ? "border-blue-600"
+              : "border-slate-300"
+          }`}
+        >
+          {active && (
+            <span className="w-2 h-2 rounded-full bg-blue-600" />
+          )}
+        </span>
+      </div>
+
+      <p className="text-[11px] text-slate-600 leading-tight">
+        {description}
+      </p>
+    </button>
   );
 }
