@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
+import { getCVData, saveCVData } from "../utils/cvStorage";
 
 const initialProfile = {
   name: "Elena Rostova",
@@ -309,7 +310,9 @@ function ResumeSection({ number, title, children }) {
 }
 
 function TemplateSelector() {
-  const [profile, setProfile] = useState(initialProfile);
+  const [profile, setProfile] = useState(() => {
+    return getCVData()?.profile || initialProfile;
+  });
   const [activeTab, setActiveTab] = useState("Info");
   const [zoom, setZoom] = useState(100);
   const [isSaved, setIsSaved] = useState(true);
@@ -322,6 +325,14 @@ function TemplateSelector() {
     setProfile((current) => ({ ...current, [field]: value }));
     setIsSaved(false);
   };
+  useEffect(() => {
+    saveCVData({
+      profile,
+      experiences,
+      skills,
+      selectedTemplate,
+    });
+  }, [profile, selectedTemplate]);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-ink text-[12px] tracking-[0.01em]">
