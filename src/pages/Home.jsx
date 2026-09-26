@@ -25,13 +25,13 @@ import { Link } from 'react-router';
 const templates = [
   {
     name: 'Modern',
-    tag: 'Most Popular',
+    tag: 'Mordern Layout',
     description: 'Clean contemporary layout featuring a dual-column header, subtle secondary accents, and crisp editorial metadata grouping.',
     type: 'modern',
   },
   {
     name: 'Classic',
-    tag: 'Executive Grade',
+    tag: 'Traditional Grade',
     description: 'Traditional professional CV layout with centered executive headers, full-width dividers, and formal chronological clarity.',
     type: 'classic',
   },
@@ -82,7 +82,7 @@ function Home() {
       <main id="top">
         <section className="hero" id="builder">
           <div className="hero-copy">
-            <span className="eyebrow">CVFORGE V2.4 <i /> EDITORIAL TYPOGRAPHY ENGINE</span>
+            <span className="eyebrow">CVFORGE V1.0 <i /> EDITORIAL TYPOGRAPHY ENGINE</span>
             <h1>Build a CV that gets noticed.</h1>
             <p>Create a professional CV in minutes. Choose a template, add your experience, and download a polished PDF — no account required.</p>
             <div className="hero-buttons"><button className="primary-button">Create my CV <ArrowRight size={13} /></button><button className="secondary-button"><LayoutTemplate size={13} /> Explore templates</button></div>
