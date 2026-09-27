@@ -7,7 +7,12 @@ function ExperienceEditor({
   onAddBullet,
   onUpdateBullet,
   onDeleteBullet,
-}) {
+}) 
+  
+
+
+
+{
   return (
     <div className="bg-white rounded-[5px] px-[10px] pt-[11px] pb-[10px] mt-[10px] border border-[#e0e5ef] shadow-[0_1px_1px_#20305d0a]">
       <div className="flex items-start gap-[7px]">

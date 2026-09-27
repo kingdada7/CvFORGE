@@ -1,3 +1,5 @@
+import React from "react";
+
 function EducationEditor({ education, onUpdate, onDelete }) {
   return (
     <div className="bg-white rounded-[5px] px-[10px] pt-[11px] pb-[10px] mt-[10px] border border-[#e0e5ef]">
