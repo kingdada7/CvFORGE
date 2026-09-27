@@ -602,8 +602,6 @@ function TemplateSelector() {
         className="grid grid-cols-[445px_1fr] min-h-[calc(100vh-156px)] max-[1050px]:grid-cols-[390px_1fr] max-[760px]:block"
         id="builder"
       >
-       
-
         {/* Preview */}
         <section className="bg-[#f1f5ff] relative px-10 pt-5 pb-[76px] overflow-hidden flex justify-center items-start max-[1050px]:px-5 max-[760px]:min-h-[860px] max-[760px]:px-[10px] max-[760px]:pb-[74px] max-[430px]:min-h-[700px]">
           <div
@@ -715,18 +713,7 @@ function TemplateSelector() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="h-[40px] bg-white flex justify-between items-center px-5 text-[#677289] font-mono text-[9px] border-t border-[#e6ebf2] max-[760px]:h-auto max-[760px]:py-3 max-[760px]:flex-col max-[760px]:items-start max-[760px]:gap-2">
-        <span>
-          CVForge © 2026. Editorial Precision CV Engine. &nbsp;•&nbsp; Local
-          Storage
-        </span>
-
-        <span>
-          Privacy Manifesto &nbsp;&nbsp; Shortcuts ⌘K &nbsp;&nbsp; Plaintext /
-          JSON Export
-        </span>
-      </footer>
+    
 
       {/* Template modal */}
       {isTemplateModalOpen && (
