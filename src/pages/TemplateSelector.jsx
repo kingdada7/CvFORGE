@@ -382,14 +382,6 @@ function TemplateSelector() {
    * ---------------------------------------------------------
    */
 
-  const tabs = [
-    "Info",
-    "Summary",
-    `Exp (${experiences.length})`,
-    `Edu (${education.length})`,
-    `Skills (${skills.length})`,
-    "More",
-  ];
 
   /*
    * ---------------------------------------------------------
@@ -463,7 +455,6 @@ function TemplateSelector() {
   return (
     <div className="min-h-screen bg-[#f8fafc] text-ink text-[12px] tracking-[0.01em]">
       {/* Top bar */}
-   
 
       {/* Workspace title */}
       <div className="h-[29px] bg-white border-b border-[#edf0f5] grid grid-cols-[445px_1fr] items-center px-5 font-mono text-[10px] max-[1050px]:grid-cols-[390px_1fr] max-[760px]:block max-[760px]:h-auto max-[760px]:py-[7px] max-[760px]:px-3">
