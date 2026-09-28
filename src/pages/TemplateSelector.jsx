@@ -24,14 +24,6 @@ const emptyCVData = {
   selectedTemplate: "modern",
 };
 
-const createId = () => {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-};
-
 const createExperience = () => ({
   id: createId(),
   title: "",
@@ -41,16 +33,6 @@ const createExperience = () => ({
   endDate: "",
   current: false,
   bullets: [],
-});
-
-const createEducation = () => ({
-  id: createId(),
-  degree: "",
-  school: "",
-  location: "",
-  startDate: "",
-  endDate: "",
-  description: "",
 });
 
 const createInitialCVData = () => ({
@@ -406,7 +388,10 @@ function TemplateSelector() {
 
           {/* Experience */}
 
-          <ExperienceEditor />
+          <ExperienceEditor
+            experiences={experiences}
+            onUpdate={updateExperiences}
+          />
           {/* Education */}
           <EducationEditor education={education} onUpdate={updateEducation} />
 

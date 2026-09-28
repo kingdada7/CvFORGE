@@ -1,24 +1,55 @@
+
 import React from "react";
 
-function ExperienceEditor({
-  experience,
-  onUpdate,
-  onDelete,
-  onAddBullet,
-  onUpdateBullet,
-  onDeleteBullet,
-}) 
-  
+const createId = () => {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
 
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
 
+const createExperience = () => ({
+  id: createId(),
+  title: "",
+  company: "",
+  location: "",
+  startDate: "",
+  endDate: "",
+  current: false,
+  bullets: [],
+});
 
-{
+function ExperienceItem({ experience, onUpdate, onDelete }) {
+  const addBullet = () => {
+    onUpdate("bullets", [...experience.bullets, ""]);
+  };
+
+  const updateBullet = (index, value) => {
+    const updatedBullets = experience.bullets.map((bullet, bulletIndex) =>
+      bulletIndex === index ? value : bullet
+    );
+
+    onUpdate("bullets", updatedBullets);
+  };
+
+  const deleteBullet = (index) => {
+    const updatedBullets = experience.bullets.filter(
+      (_, bulletIndex) => bulletIndex !== index
+    );
+
+    onUpdate("bullets", updatedBullets);
+  };
+
   return (
     <div className="bg-white rounded-[5px] px-[10px] pt-[11px] pb-[10px] mt-[10px] border border-[#e0e5ef] shadow-[0_1px_1px_#20305d0a]">
       <div className="flex items-start gap-[7px]">
-        <Icon className="text-[#59616f] font-sans text-[15px] !mr-[1px] mt-[5px]">
+        <span
+          className="text-[#59616f] font-sans text-[15px] mt-[5px]"
+          aria-hidden="true"
+        >
           ⁙
-        </Icon>
+        </span>
 
         <div className="min-w-0 flex-1 grid grid-cols-2 gap-2">
           <input
@@ -88,7 +119,7 @@ function ExperienceEditor({
 
           <button
             type="button"
-            onClick={onAddBullet}
+            onClick={addBullet}
             className="text-brand font-mono text-[9px]"
           >
             + Bullet
@@ -112,14 +143,14 @@ function ExperienceEditor({
 
             <input
               value={bullet}
-              onChange={(e) => onUpdateBullet(index, e.target.value)}
+              onChange={(e) => updateBullet(index, e.target.value)}
               placeholder="Describe an achievement or responsibility..."
               className="bg-[#eef2fa] rounded-[3px] px-[7px] py-[6px] border-none outline-none text-[#334057] text-[10px] w-full"
             />
 
             <button
               type="button"
-              onClick={() => onDeleteBullet(index)}
+              onClick={() => deleteBullet(index)}
               className="text-[#a05252] text-[12px]"
               aria-label="Delete bullet"
             >
@@ -131,5 +162,83 @@ function ExperienceEditor({
     </div>
   );
 }
- 
+
+function ExperienceEditor({ experiences = [], onUpdate }) {
+  const addExperience = () => {
+    onUpdate([...experiences, createExperience()]);
+  };
+
+  const updateExperience = (id, field, value) => {
+    const updatedExperiences = experiences.map((experience) =>
+      experience.id === id
+        ? {
+            ...experience,
+            [field]: value,
+          }
+        : experience
+    );
+
+    onUpdate(updatedExperiences);
+  };
+
+  const deleteExperience = (id) => {
+    const updatedExperiences = experiences.filter(
+      (experience) => experience.id !== id
+    );
+
+    onUpdate(updatedExperiences);
+  };
+
+  return (
+    <section className="mt-[14px]">
+      <div className="flex items-center justify-between mb-[10px]">
+        <h3 className="text-[15px] font-semibold tracking-[-0.03em]">
+          Experience
+
+          {experiences.length > 0 && (
+            <span className="text-[10px] bg-[#dfe6f7] px-[5px] py-[2px] rounded-[8px] text-[#7b87a2] ml-[7px]">
+              {experiences.length}
+            </span>
+          )}
+        </h3>
+
+        <button
+          type="button"
+          onClick={addExperience}
+          className="text-[#2732d5] text-[11px] font-semibold"
+        >
+          + Add
+        </button>
+      </div>
+
+      {experiences.length === 0 ? (
+        <div className="bg-white border border-dashed border-[#d8dfeb] rounded-[5px] p-[14px] text-center">
+          <p className="text-[11px] text-[#7b8497] m-0">
+            No experience added yet.
+          </p>
+
+          <button
+            type="button"
+            onClick={addExperience}
+            className="mt-[8px] text-[11px] text-[#2732d5] font-semibold"
+          >
+            + Add experience
+          </button>
+        </div>
+      ) : (
+        experiences.map((experience) => (
+          <ExperienceItem
+            key={experience.id}
+            experience={experience}
+            onUpdate={(field, value) =>
+              updateExperience(experience.id, field, value)
+            }
+            onDelete={() => deleteExperience(experience.id)}
+          />
+        ))
+      )}
+    </section>
+  );
+}
+
 export default ExperienceEditor;
