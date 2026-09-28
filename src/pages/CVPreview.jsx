@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import html2pdf from "html2pdf.js";
@@ -35,23 +34,18 @@ export default function CVPreview() {
     return getCVData() || {};
   }, []);
 
- const profile = cvData.profile || {};
-const experiences = Array.isArray(cvData.experiences)
-  ? cvData.experiences
-  : [];
-const education = Array.isArray(cvData.education)
-  ? cvData.education
-  : [];
-const skills = Array.isArray(cvData.skills)
-  ? cvData.skills
-  : [];
+  const profile = cvData.profile || {};
+  const experiences = Array.isArray(cvData.experiences)
+    ? cvData.experiences
+    : [];
+  const education = Array.isArray(cvData.education) ? cvData.education : [];
+  const skills = Array.isArray(cvData.skills) ? cvData.skills : [];
 
-const selectedTemplate = cvData.selectedTemplate || "modern";
+  const selectedTemplate = cvData.selectedTemplate || "modern";
 
+  const fullName = profile.name || "Your Name";
 
-const fullName = profile.name || "Your Name";
-
-const jobTitle = profile.headline || "Professional Title";
+  const jobTitle = profile.headline || "Professional Title";
 
   const summary =
     profile.summary ||
@@ -91,13 +85,11 @@ const jobTitle = profile.headline || "Professional Title";
         lines.push(
           `${job.position || job.title || "Position"} — ${
             job.company || "Company"
-          }`
+          }`,
         );
 
         if (job.startDate || job.endDate) {
-          lines.push(
-            `${job.startDate || ""} — ${job.endDate || "Present"}`
-          );
+          lines.push(`${job.startDate || ""} — ${job.endDate || "Present"}`);
         }
 
         if (job.description) {
@@ -132,13 +124,11 @@ const jobTitle = profile.headline || "Professional Title";
         lines.push(
           `${school.degree || school.program || "Degree"} — ${
             school.school || school.institution || "Institution"
-          }`
+          }`,
         );
 
         if (school.startDate || school.endDate) {
-          lines.push(
-            `${school.startDate || ""} — ${school.endDate || ""}`
-          );
+          lines.push(`${school.startDate || ""} — ${school.endDate || ""}`);
         }
       });
     }
@@ -164,132 +154,123 @@ const jobTitle = profile.headline || "Professional Title";
     window.print();
   };
 
+  const handleDownloadPDF = async () => {
+    const element = document.getElementById("cv-document");
 
+    if (!element) {
+      alert("CV document was not found.");
+      return;
+    }
 
+    try {
+      setIsDownloading(true);
 
-const handleDownloadPDF = async () => {
-  const element = document.getElementById("cv-document");
+      // Create a temporary wrapper
+      const wrapper = document.createElement("div");
 
-  if (!element) {
-    alert("CV document was not found.");
-    return;
-  }
+      wrapper.style.position = "fixed";
+      wrapper.style.left = "0";
+      wrapper.style.top = "0";
+      wrapper.style.width = "794px";
+      wrapper.style.background = "#ffffff";
+      wrapper.style.zIndex = "-9999";
+      wrapper.style.pointerEvents = "none";
 
-  try {
-    setIsDownloading(true);
+      // Clone the CV
+      const clone = element.cloneNode(true);
 
-    // Create a temporary wrapper
-    const wrapper = document.createElement("div");
+      clone.style.width = "794px";
+      clone.style.minHeight = "1123px";
+      clone.style.height = "auto";
+      clone.style.padding = element.style.padding;
+      clone.style.margin = "0";
+      clone.style.backgroundColor = "#ffffff";
+      clone.style.color = "#0f172a";
+      clone.style.border = "none";
+      clone.style.boxShadow = "none";
+      clone.style.transform = "none";
 
-    wrapper.style.position = "fixed";
-    wrapper.style.left = "0";
-    wrapper.style.top = "0";
-    wrapper.style.width = "794px";
-    wrapper.style.background = "#ffffff";
-    wrapper.style.zIndex = "-9999";
-    wrapper.style.pointerEvents = "none";
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
 
-    // Clone the CV
-    const clone = element.cloneNode(true);
+      // Give the browser a moment to render the clone
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-    clone.style.width = "794px";
-    clone.style.minHeight = "1123px";
-    clone.style.height = "auto";
-    clone.style.padding = element.style.padding;
-    clone.style.margin = "0";
-    clone.style.backgroundColor = "#ffffff";
-    clone.style.color = "#0f172a";
-    clone.style.border = "none";
-    clone.style.boxShadow = "none";
-    clone.style.transform = "none";
+      // Replace unsupported OKLCH colors
+      const allElements = clone.querySelectorAll("*");
 
-    wrapper.appendChild(clone);
-    document.body.appendChild(wrapper);
+      allElements.forEach((el) => {
+        const styles = window.getComputedStyle(el);
 
-    // Give the browser a moment to render the clone
-    await new Promise((resolve) => setTimeout(resolve, 100));
+        if (styles.color.includes("oklch")) {
+          el.style.color = "#0f172a";
+        }
 
-    // Replace unsupported OKLCH colors
-    const allElements = clone.querySelectorAll("*");
+        if (styles.backgroundColor.includes("oklch")) {
+          el.style.backgroundColor = "#ffffff";
+        }
 
-    allElements.forEach((el) => {
-      const styles = window.getComputedStyle(el);
+        if (styles.borderColor.includes("oklch")) {
+          el.style.borderColor = "#e2e8f0";
+        }
 
-      if (styles.color.includes("oklch")) {
-        el.style.color = "#0f172a";
-      }
+        if (styles.boxShadow.includes("oklch")) {
+          el.style.boxShadow = "none";
+        }
+      });
 
-      if (styles.backgroundColor.includes("oklch")) {
-        el.style.backgroundColor = "#ffffff";
-      }
+      const safeName =
+        fullName
+          .replace(/[^a-z0-9]/gi, "_")
+          .replace(/_+/g, "_")
+          .replace(/^_|_$/g, "") || "CV";
 
-      if (styles.borderColor.includes("oklch")) {
-        el.style.borderColor = "#e2e8f0";
-      }
+      await html2pdf()
+        .set({
+          margin: 0,
 
-      if (styles.boxShadow.includes("oklch")) {
-        el.style.boxShadow = "none";
-      }
-    });
+          filename: `${safeName}_CV.pdf`,
 
-    const safeName =
-      fullName
-        .replace(/[^a-z0-9]/gi, "_")
-        .replace(/_+/g, "_")
-        .replace(/^_|_$/g, "") || "CV";
+          image: {
+            type: "jpeg",
+            quality: 0.98,
+          },
 
-    await html2pdf()
-      .set({
-        margin: 0,
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            logging: false,
 
-        filename: `${safeName}_CV.pdf`,
+            // Important for the cloned element
+            width: 794,
+            windowWidth: 794,
+          },
 
-        image: {
-          type: "jpeg",
-          quality: 0.98,
-        },
+          jsPDF: {
+            unit: "mm",
+            format: paper === "a4" ? "a4" : "letter",
+            orientation: "portrait",
+          },
 
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: "#ffffff",
-          logging: false,
+          pagebreak: {
+            mode: ["css", "legacy"],
+          },
+        })
+        .from(clone)
+        .save();
 
-          // Important for the cloned element
-          width: 794,
-          windowWidth: 794,
-        },
+      // Clean up
+      document.body.removeChild(wrapper);
 
-        jsPDF: {
-          unit: "mm",
-          format: paper === "a4" ? "a4" : "letter",
-          orientation: "portrait",
-        },
-
-        pagebreak: {
-          mode: ["css", "legacy"],
-        },
-      })
-      .from(clone)
-      .save();
-
-    // Clean up
-    document.body.removeChild(wrapper);
-
-    console.log("PDF DOWNLOAD SUCCESS");
-  } catch (error) {
-    console.error("PDF generation failed:", error);
-    alert("PDF generation failed. Check the console.");
-  } finally {
-    setIsDownloading(false);
-  }
-};
-
-
-
-
-
-
+      console.log("PDF DOWNLOAD SUCCESS");
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      alert("PDF generation failed. Check the console.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const handleZoomIn = () => {
     setZoom((current) => Math.min(current + 10, 150));
@@ -326,9 +307,7 @@ const handleDownloadPDF = async () => {
               {fullName.replace(/\s+/g, "_")}_CV.pdf
             </span>
 
-            <span className="text-slate-500 text-xs">
-              Ready
-            </span>
+            <span className="text-slate-500 text-xs">Ready</span>
           </div>
         </div>
 
@@ -347,9 +326,7 @@ const handleDownloadPDF = async () => {
               <Minus size={14} />
             </button>
 
-            <span className="w-10 text-center text-xs">
-              {zoom}%
-            </span>
+            <span className="w-10 text-center text-xs">{zoom}%</span>
 
             <button
               onClick={handleZoomIn}
@@ -386,191 +363,32 @@ const handleDownloadPDF = async () => {
                 padding: pagePadding,
               }}
             >
-              {/* ================= HEADER ================= */}
-              <header className="flex justify-between items-start gap-8 mb-8">
-                <div className="min-w-0">
-                  <h1 className="text-[32px] font-bold tracking-tight text-slate-900 leading-none">
-                    {fullName}
-                    <span className="text-blue-600">•</span>
-                  </h1>
-
-                  <p className="text-blue-600 font-medium text-[15px] mt-2">
-                    {jobTitle}
-                  </p>
-
-                  <p className="text-slate-600 text-[13px] mt-2 leading-snug max-w-xl">
-                    {summary}
-                  </p>
-                </div>
-
-                <div className="text-right text-[12px] text-slate-600 leading-relaxed flex-shrink-0">
-                  <div className="font-medium text-slate-800">
-                    {location}
-                  </div>
-
-                  <div>{email}</div>
-
-                  <div>{phone}</div>
-
-                  {website && (
-                    <div className="text-blue-600">
-                      {website}
-                    </div>
-                  )}
-                </div>
-              </header>
-
-              {/* ================= EXPERIENCE ================= */}
-              {experience.length > 0 && (
-                <section className="mb-7">
-                  <SectionTitle title="Professional Experience" />
-
-                  {experience.map((job, index) => (
-                    <div
-                      key={job.id || index}
-                      className={
-                        index !== experience.length - 1
-                          ? "mb-5"
-                          : ""
-                      }
-                    >
-                      <div className="flex justify-between items-baseline gap-4">
-                        <h3 className="font-semibold text-[15px]">
-                          {job.position ||
-                            job.title ||
-                            "Position"}
-
-                          {job.company && (
-                            <span className="font-normal text-slate-500">
-                              {" "}
-                              • {job.company}
-                            </span>
-                          )}
-                        </h3>
-
-                        {(job.startDate || job.endDate) && (
-                          <span className="text-[12px] text-slate-500 whitespace-nowrap">
-                            {job.startDate || ""} —{" "}
-                            {job.endDate || "Present"}
-                          </span>
-                        )}
-                      </div>
-
-                      {job.description && (
-                        <p className="mt-1.5 text-[13px] text-slate-700 leading-snug">
-                          {job.description}
-                        </p>
-                      )}
-
-                      {Array.isArray(job.responsibilities) &&
-                        job.responsibilities.length > 0 && (
-                          <ul className="mt-1.5 space-y-1 text-[13px] text-slate-700 leading-snug">
-                            {job.responsibilities.map(
-                              (item, responsibilityIndex) => (
-                                <li
-                                  key={responsibilityIndex}
-                                  className="flex gap-2"
-                                >
-                                  <span className="text-slate-400">
-                                    •
-                                  </span>
-
-                                  <span>{item}</span>
-                                </li>
-                              )
-                            )}
-                          </ul>
-                        )}
-                    </div>
-                  ))}
-                </section>
+              {selectedTemplate === "modern" && (
+                <ModernTemplate
+                  profile={profile}
+                  experiences={experiences}
+                  education={education}
+                  skills={skills}
+                />
               )}
 
-              {/* ================= SKILLS ================= */}
-              {skills.length > 0 && (
-                <section className="mb-7">
-                  <SectionTitle title="Skills & Technical Capabilities" />
-
-                  <div className="flex flex-wrap gap-2">
-                    {skills.map((skill, index) => {
-                      const name =
-                        typeof skill === "string"
-                          ? skill
-                          : skill.name ||
-                            skill.title ||
-                            "";
-
-                      if (!name) return null;
-
-                      return (
-                        <span
-                          key={skill.id || index}
-                          className="bg-slate-50 border border-slate-200 rounded-md px-3 py-1.5 text-[12px] text-slate-700"
-                        >
-                          {name}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </section>
+              {selectedTemplate === "classic" && (
+                <ClassicTemplate
+                  profile={profile}
+                  experiences={experiences}
+                  education={education}
+                  skills={skills}
+                />
               )}
 
-              {/* ================= EDUCATION ================= */}
-              {education.length > 0 && (
-                <section>
-                  <SectionTitle title="Education" />
-
-                  {education.map((school, index) => (
-                    <div
-                      key={school.id || index}
-                      className="flex justify-between items-baseline gap-4"
-                    >
-                      <div>
-                        <h3 className="font-semibold text-[15px]">
-                          {school.degree ||
-                            school.program ||
-                            "Degree"}
-                        </h3>
-
-                        <p className="text-[13px] text-slate-600 mt-0.5">
-                          {school.school ||
-                            school.institution ||
-                            "Institution"}
-                        </p>
-                      </div>
-
-                      {(school.startDate ||
-                        school.endDate) && (
-                        <span className="text-[12px] text-slate-500 whitespace-nowrap">
-                          {school.startDate || ""} —{" "}
-                          {school.endDate || ""}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </section>
+              {selectedTemplate === "minimal" && (
+                <MinimalTemplate
+                  profile={profile}
+                  experiences={experiences}
+                  education={education}
+                  skills={skills}
+                />
               )}
-
-              {/* Empty CV state */}
-              {experience.length === 0 &&
-                skills.length === 0 &&
-                education.length === 0 && (
-                  <div className="py-20 text-center text-slate-400">
-                    <FileText
-                      size={40}
-                      className="mx-auto mb-3"
-                    />
-
-                    <p className="font-medium">
-                      Your CV content will appear here.
-                    </p>
-
-                    <p className="text-sm mt-1">
-                      Go back to the builder and add your
-                      information.
-                    </p>
-                  </div>
-                )}
             </div>
           </div>
         </div>
@@ -584,10 +402,7 @@ const handleDownloadPDF = async () => {
             <div className="px-5 pt-5 pb-4 flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <Download
-                    size={19}
-                    className="text-blue-600"
-                  />
+                  <Download size={19} className="text-blue-600" />
 
                   <h2 className="text-lg font-semibold text-slate-900">
                     Export Your CV
@@ -595,8 +410,7 @@ const handleDownloadPDF = async () => {
                 </div>
 
                 <p className="text-[13px] text-slate-500 mt-1">
-                  Choose your document format and page
-                  settings.
+                  Choose your document format and page settings.
                 </p>
               </div>
 
@@ -609,17 +423,11 @@ const handleDownloadPDF = async () => {
             <div className="mx-5 mb-5 bg-blue-50 border border-blue-100 rounded-lg p-3">
               <div className="flex items-center justify-between text-[13px] mb-1.5">
                 <div className="flex items-center gap-1.5 text-blue-700 font-medium">
-                  <Check
-                    size={15}
-                    className="text-emerald-500"
-                  />
-
+                  <Check size={15} className="text-emerald-500" />
                   CV Ready
                 </div>
 
-                <span className="font-semibold text-blue-800">
-                  100%
-                </span>
+                <span className="font-semibold text-blue-800">100%</span>
               </div>
 
               <div className="h-1.5 bg-blue-200 rounded-full overflow-hidden">
@@ -627,8 +435,8 @@ const handleDownloadPDF = async () => {
               </div>
 
               <p className="text-[11px] text-blue-700/80 mt-2 leading-snug">
-                Your CV is ready to export. You can download,
-                print, or copy the ATS-friendly text.
+                Your CV is ready to export. You can download, print, or copy the
+                ATS-friendly text.
               </p>
             </div>
 
@@ -664,9 +472,7 @@ const handleDownloadPDF = async () => {
                   Paper Dimension
                 </h3>
 
-                <span className="text-[10px] text-slate-400">
-                  Standard
-                </span>
+                <span className="text-[10px] text-slate-400">Standard</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -708,9 +514,7 @@ const handleDownloadPDF = async () => {
                 </h3>
 
                 <span className="text-[10px] text-slate-400">
-                  {margins === "balanced"
-                    ? "18mm"
-                    : "12mm"}
+                  {margins === "balanced" ? "18mm" : "12mm"}
                 </span>
               </div>
 
@@ -804,11 +608,9 @@ const handleDownloadPDF = async () => {
                 <span className="font-medium text-slate-800">
                   Client-Side CV Builder
                 </span>
-
                 <br />
-
-                Your CV data is processed in the browser
-                while you build and export your document.
+                Your CV data is processed in the browser while you build and
+                export your document.
               </div>
             </div>
           </div>
@@ -858,13 +660,7 @@ function SectionTitle({ title }) {
    FORMAT BUTTON
 ============================================================ */
 
-function FormatButton({
-  active,
-  onClick,
-  title,
-  description,
-  icon,
-}) {
+function FormatButton({ active, onClick, title, description, icon }) {
   return (
     <button
       onClick={onClick}
@@ -882,20 +678,14 @@ function FormatButton({
 
         <span
           className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-            active
-              ? "border-blue-600"
-              : "border-slate-300"
+            active ? "border-blue-600" : "border-slate-300"
           }`}
         >
-          {active && (
-            <span className="w-2 h-2 rounded-full bg-blue-600" />
-          )}
+          {active && <span className="w-2 h-2 rounded-full bg-blue-600" />}
         </span>
       </div>
 
-      <p className="text-[11px] text-slate-600 leading-tight">
-        {description}
-      </p>
+      <p className="text-[11px] text-slate-600 leading-tight">{description}</p>
     </button>
   );
 }
