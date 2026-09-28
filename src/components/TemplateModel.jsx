@@ -1,3 +1,5 @@
+import React, { useState, useEffect, useMemo } from "react";
+
 function TemplateModal({
   selectedTemplate,
   setSelectedTemplate,

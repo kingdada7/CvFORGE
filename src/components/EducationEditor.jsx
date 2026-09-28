@@ -1,6 +1,25 @@
+
 import React from "react";
 
-function EducationEditor({ education, onUpdate, onDelete }) {
+const createId = () => {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
+const createEducation = () => ({
+  id: createId(),
+  degree: "",
+  school: "",
+  location: "",
+  startDate: "",
+  endDate: "",
+  description: "",
+});
+
+function EducationItem({ education, onUpdate, onDelete }) {
   return (
     <div className="bg-white rounded-[5px] px-[10px] pt-[11px] pb-[10px] mt-[10px] border border-[#e0e5ef]">
       <div className="flex justify-between items-start gap-2">
@@ -60,6 +79,81 @@ function EducationEditor({ education, onUpdate, onDelete }) {
         </button>
       </div>
     </div>
+  );
+}
+
+function EducationEditor({ education = [], onUpdate }) {
+  const addEducation = () => {
+    onUpdate([...education, createEducation()]);
+  };
+
+  const updateEducation = (id, field, value) => {
+    const updatedEducation = education.map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            [field]: value,
+          }
+        : item
+    );
+
+    onUpdate(updatedEducation);
+  };
+
+  const deleteEducation = (id) => {
+    const updatedEducation = education.filter((item) => item.id !== id);
+
+    onUpdate(updatedEducation);
+  };
+
+  return (
+    <section className="mt-[14px]">
+      <div className="flex items-center justify-between mb-[10px]">
+        <h3 className="text-[15px] font-semibold tracking-[-0.03em]">
+          Education
+          {education.length > 0 && (
+            <span className="text-[10px] bg-[#dfe6f7] px-[5px] py-[2px] rounded-[8px] text-[#7b87a2] ml-[7px]">
+              {education.length}
+            </span>
+          )}
+        </h3>
+
+        <button
+          type="button"
+          onClick={addEducation}
+          className="text-[#2732d5] text-[11px] font-semibold"
+        >
+          + Add
+        </button>
+      </div>
+
+      {education.length === 0 ? (
+        <div className="bg-white border border-dashed border-[#d8dfeb] rounded-[5px] p-[14px] text-center">
+          <p className="text-[11px] text-[#7b8497] m-0">
+            No education added yet.
+          </p>
+
+          <button
+            type="button"
+            onClick={addEducation}
+            className="mt-[8px] text-[11px] text-[#2732d5] font-semibold"
+          >
+            + Add education
+          </button>
+        </div>
+      ) : (
+        education.map((item) => (
+          <EducationItem
+            key={item.id}
+            education={item}
+            onUpdate={(field, value) =>
+              updateEducation(item.id, field, value)
+            }
+            onDelete={() => deleteEducation(item.id)}
+          />
+        ))
+      )}
+    </section>
   );
 }
 

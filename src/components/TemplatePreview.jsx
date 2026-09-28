@@ -1,3 +1,5 @@
+import React from "react";
+
 function TemplatePreview({ variant }) {
   if (variant === "classic") {
     return (
