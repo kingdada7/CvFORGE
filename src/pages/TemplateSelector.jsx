@@ -408,7 +408,7 @@ function TemplateSelector() {
 
           <ExperienceEditor />
           {/* Education */}
-          <EducationEditor />
+          <EducationEditor education={education} onUpdate={updateEducation} />
 
           {/* Skills */}
           <SkillSection />
