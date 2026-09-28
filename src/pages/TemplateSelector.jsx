@@ -204,14 +204,14 @@ function TemplateSelector() {
       ===================================================== */}
 
       <header className="h-[52px] bg-white border-b border-[#edf0f5] flex items-center px-5 gap-4">
-        <div className="font-bold text-[15px] tracking-[-0.04em] whitespace-nowrap">
+        <Link to="/" className="font-bold text-[15px] tracking-[-0.04em] whitespace-nowrap">
           CVForge{" "}
           <span className="inline-block w-1 h-1 rounded-full bg-brand align-top ml-[3px] mt-[2px]" />
-        </div>
+        </Link>
 
         <div className="h-[18px] w-px bg-[#d8dfeb]" />
 
-        <nav
+        {/* <nav
           className="flex items-center gap-[19px] text-[11px] max-[760px]:hidden"
           aria-label="Primary navigation"
         >
@@ -237,7 +237,7 @@ function TemplateSelector() {
           >
             Editorial Guide
           </a>
-        </nav>
+        </nav> */}
 
         <div className="ml-auto flex items-center gap-[18px] whitespace-nowrap">
           {/* Save status */}
