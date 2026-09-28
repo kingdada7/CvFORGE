@@ -198,48 +198,52 @@ function Home() {
 
         <section className="ats-callout">
           <div>
-            <span className="eyebrow">READY IN UNDER 5 MINUTES</span>
-            <h2>Need a custom ATS test before sending?</h2>
+            <span className="eyebrow">ATS-FRIENDLY CVs</span>
+
+            <h2>Build a CV that's easy to read and scan.</h2>
+
             <p>
-              CVForge outputs strict semantic text layers, ensuring your resume
-              passes Workday, Greenhouse, and Lever parsers without distorted
-              tokens.
+              CVForge uses clean layouts and structured text to help keep your
+              CV readable for both recruiters and applicant tracking systems.
             </p>
           </div>
+
           <div className="callout-actions">
-            <button className="primary-button">
+            <Link to="/template" className="primary-button">
               Start building now <ArrowRight size={13} />
-            </button>
-            <button className="secondary-button">View ATS metrics</button>
+            </Link>
           </div>
         </section>
-
         <section className="privacy section" id="privacy">
           <SectionHeading
-            eyebrow="ENGINEERED FOR PRIVACY"
-            title="Zero tracking. Absolute ownership."
-            description="Most resume builders hold your PDF hostage behind surprise recurring subscriptions. CVForge operates entirely in your browser memory."
+            eyebrow="BUILT FOR PRIVACY"
+            title="Your CV stays in your browser."
+            description="CVForge is designed as a client-side CV builder. Your resume data is stored locally in your browser while you work."
           />
+
           <div className="privacy-grid">
             <PrivacyCard
               icon={<ShieldCheck size={15} />}
-              title="Client-Side Only"
-              text="Data never leaves your local browser session. No databases, no recovery links, no corporate trackers harvesting emails."
+              title="Client-Side"
+              text="Your CV is created and edited directly in your browser. The current MVP does not use a CV database or user accounts."
             />
+
             <PrivacyCard
               icon={<FileText size={15} />}
-              title="LaTeX-Grade Vector"
-              text="Exports crisp, true-vector 300 DPI documents ready for standard A4 and US Letter printing without pixelation."
+              title="PDF Export"
+              text="Export your finished CV as a PDF using clean, print-ready A4 or US Letter layouts."
             />
+
             <PrivacyCard
               icon={<Code2 size={15} />}
-              title="Plaintext / JSON"
-              text="Export and import your resume in open-accepted JSON format at any moment. Retain complete archival freedom."
+              title="Local Storage"
+              text="Your current CV data is saved in your browser so you can continue working without creating an account."
             />
+
             <PrivacyCard
               icon={<Table2 size={15} />}
-              title="Keyboard First"
-              text="Optimized for fast entry with 30X command patterns, markdown shortcuts, and instant tab indexing."
+              title="Simple Workflow"
+              text="Fill in your information, choose a template, preview your CV, and export it when you're ready."
             />
           </div>
         </section>
@@ -365,12 +369,12 @@ function TemplateCard({ name, tag, description, type }) {
         </div>
         <p>{description}</p>
         <div className="template-actions">
-          <button>
+          {/* <button>
             <MousePointer2 size={11} /> Preview
           </button>
           <button>
             Use template <ArrowRight size={11} />
-          </button>
+          </button> */}
         </div>
       </div>
     </article>
