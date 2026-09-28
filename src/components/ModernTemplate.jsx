@@ -83,31 +83,53 @@ const ModernTemplate = ({
       )}
 
       {/* Education */}
-      {education.length > 0 && (
-        <section className="mt-8">
-          <h2 className="mb-4 text-sm font-bold uppercase tracking-wider">
-            Education
-          </h2>
+     {education.length > 0 && (
+  <section className="mt-8">
+    <h2 className="mb-4 text-sm font-bold uppercase tracking-wider">
+      Education
+    </h2>
 
-          <div className="space-y-4">
-            {education.map((item, index) => (
-              <div key={item.id || index}>
-                <h3 className="font-semibold">
-                  {item.degree || item.title || "Degree"}
-                </h3>
+    <div className="space-y-5">
+      {education.map((item, index) => (
+        <div key={item.id || index}>
+          {/* Degree */}
+          <h3 className="font-semibold">
+            {item.degree || "Degree / Qualification"}
+          </h3>
 
-                <p className="text-sm text-gray-600">
-                  {item.school || item.institution || "Institution"}
-                </p>
+          {/* School */}
+          <p className="text-sm text-gray-600">
+            {item.school || "School / University"}
+          </p>
 
-                {item.year && (
-                  <p className="text-xs text-gray-400">{item.year}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+          {/* Location + Dates */}
+          {(item.location || item.startDate || item.endDate) && (
+            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-400">
+              {item.location && (
+                <span>{item.location}</span>
+              )}
+
+              {(item.startDate || item.endDate) && (
+                <span>
+                  {item.startDate}
+                  {item.startDate && item.endDate && " - "}
+                  {item.endDate}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Description */}
+          {item.description && (
+            <p className="mt-2 text-sm leading-6 text-gray-600">
+              {item.description}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  </section>
+)}
 
       {/* Skills */}
       {skills.length > 0 && (

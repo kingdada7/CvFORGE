@@ -77,11 +77,11 @@ export default function CVPreview() {
     lines.push("PROFESSIONAL SUMMARY");
     lines.push(summary);
 
-    if (experience.length > 0) {
+    if (experiences.length > 0) {
       lines.push("");
       lines.push("EXPERIENCE");
 
-      experience.forEach((job) => {
+      experiences.forEach((job) => {
         lines.push(
           `${job.position || job.title || "Position"} — ${
             job.company || "Company"
@@ -96,9 +96,11 @@ export default function CVPreview() {
           lines.push(job.description);
         }
 
-        if (Array.isArray(job.responsibilities)) {
-          job.responsibilities.forEach((item) => {
-            lines.push(`• ${item}`);
+        if (Array.isArray(job.bullets)) {
+          job.bullets.forEach((bullet) => {
+            if (bullet.trim()) {
+              lines.push(`• ${bullet}`);
+            }
           });
         }
       });
