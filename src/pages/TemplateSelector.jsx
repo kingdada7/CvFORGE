@@ -399,7 +399,12 @@ function TemplateSelector() {
         </aside>
 
         {/* Preview */}
-        <PreviewWorkspace />
+        <PreviewWorkspace
+          cvData={cvData}
+          zoom={zoom}
+          setZoom={setZoom}
+          onOpenTemplateModal={() => setIsTemplateModalOpen(true)}
+        />
       </main>
 
       {/* Footer */}
