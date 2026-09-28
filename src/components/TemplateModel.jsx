@@ -1,4 +1,29 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React from "react";
+import TemplatePreview from "./TemplatePreview";
+
+const templateOptions = [
+  {
+    id: "modern",
+    name: "Modern",
+    description:
+      "A clean contemporary layout with strong visual hierarchy.",
+    button: "Use Modern",
+  },
+  {
+    id: "classic",
+    name: "Classic",
+    description:
+      "A traditional professional layout suitable for formal CVs.",
+    button: "Use Classic",
+  },
+  {
+    id: "minimal",
+    name: "Minimal",
+    description:
+      "A simple, spacious layout focused on clarity and readability.",
+    button: "Use Minimal",
+  },
+];
 
 function TemplateModal({
   selectedTemplate,
@@ -9,6 +34,7 @@ function TemplateModal({
   return (
     <div className="fixed inset-0 z-50 bg-[#20232b]/45 backdrop-blur-[4px] flex items-center justify-center p-6 max-[760px]:p-3">
       <div className="w-full max-w-[1095px] bg-white rounded-[5px] shadow-[0_22px_60px_#151a2b45] overflow-hidden border-t-[3px] border-brand">
+        {/* Header */}
         <div className="px-9 pt-5 pb-3 max-[760px]:px-5">
           <div className="flex items-start justify-between">
             <div>
@@ -43,6 +69,7 @@ function TemplateModal({
           </div>
         </div>
 
+        {/* Templates */}
         <div className="grid grid-cols-3 gap-5 px-9 py-3 max-[760px]:grid-cols-1 max-[760px]:px-5 max-[760px]:gap-3">
           {templateOptions.map((template) => {
             const isSelected = selectedTemplate === template.id;
@@ -58,13 +85,16 @@ function TemplateModal({
                     : "border-[#eef1f6] hover:border-[#bdb8ff]"
                 }`}
               >
+                {/* Template title */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-1 text-[17px] font-bold">
                     <span
                       className={`w-[8px] h-[8px] rounded-full ${
                         template.id === "modern"
                           ? "bg-[#4f45e3]"
-                          : "bg-[#233044]"
+                          : template.id === "classic"
+                            ? "bg-[#233044]"
+                            : "bg-[#737887]"
                       }`}
                     />
 
@@ -78,12 +108,15 @@ function TemplateModal({
                   )}
                 </div>
 
+                {/* Template preview */}
                 <TemplatePreview variant={template.id} />
 
+                {/* Description */}
                 <p className="text-[12px] leading-[1.45] text-[#515967] min-h-[38px] mt-[10px] mb-[9px]">
                   {template.description}
                 </p>
 
+                {/* Selection button */}
                 <span
                   className={`block text-center rounded-[4px] text-[12px] font-semibold py-[7px] ${
                     isSelected
@@ -98,6 +131,7 @@ function TemplateModal({
           })}
         </div>
 
+        {/* Footer */}
         <div className="bg-[#f1f5ff] border-t border-[#e4eafa] px-9 py-3 flex items-center justify-between max-[760px]:px-5 max-[760px]:gap-3 max-[430px]:flex-col max-[430px]:items-stretch">
           <span className="text-[12px] text-[#657084] flex items-center">
             <span className="text-brand text-[17px] mr-2">◉</span>
