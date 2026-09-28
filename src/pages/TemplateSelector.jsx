@@ -286,7 +286,7 @@ function TemplateSelector() {
             <span className="text-white font-sans mr-[7px] max-[760px]:text-[13px] max-[760px]:mr-0">
               ⇩
             </span>
-            Download PDF
+          <span className="text-white">  Download PDF</span>
           </Link>
         </div>
       </header>
