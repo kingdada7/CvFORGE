@@ -24,17 +24,6 @@ const emptyCVData = {
   selectedTemplate: "modern",
 };
 
-const createExperience = () => ({
-  id: createId(),
-  title: "",
-  company: "",
-  location: "",
-  startDate: "",
-  endDate: "",
-  current: false,
-  bullets: [],
-});
-
 const createInitialCVData = () => ({
   ...emptyCVData,
   profile: {
