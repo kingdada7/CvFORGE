@@ -86,50 +86,7 @@ const templateOptions = [
   },
 ];
 
-const tabIcons = ["♙", "≡", "▣", "⌂", "⌘", "+"];
 
-function Icon({ children, className = "" }) {
-  return (
-    <span
-      className={`inline-flex w-[17px] justify-center items-center text-brand font-serif mr-[7px] ${className}`}
-      aria-hidden="true"
-    >
-      {children}
-    </span>
-  );
-}
-
-function CardHeading({ icon, title, count }) {
-  return (
-    <div className="flex items-center justify-between mb-[14px]">
-      <h3 className="text-[15px] m-0 tracking-[-0.03em] flex items-center">
-        <Icon className="font-sans text-[14px]">{icon}</Icon>
-
-        {title}
-
-        {typeof count === "number" && (
-          <small className="text-[10px] bg-[#dfe6f7] px-[5px] py-[2px] rounded-[8px] text-[#7b87a2] ml-[7px]">
-            {count}
-          </small>
-        )}
-      </h3>
-
-      <span className="text-brand text-[16px] font-bold">✓</span>
-    </div>
-  );
-}
-
-function ResumeSection({ number, title, children }) {
-  return (
-    <section className="mb-5">
-      <h3 className="m-0 mb-[10px] text-[#2732d5] font-mono font-bold text-[9px] tracking-[0.08em]">
-        <span className="font-normal">{number} /</span> {title}
-      </h3>
-
-      {children}
-    </section>
-  );
-}
 
 function TemplateSelector() {
   const [cvData, setCVData] = useState(() => {
@@ -184,59 +141,6 @@ function TemplateSelector() {
       .replace(/[^a-zA-Z0-9_-]/g, "");
   }, [profile.name, profile.headline]);
 
-  /*
-   * ---------------------------------------------------------
-   * EXPERIENCE DATE DISPLAY
-   * ---------------------------------------------------------
-   */
-
-  const getExperienceDates = (experience) => {
-    const start = experience.startDate?.trim();
-    const end = experience.current ? "Present" : experience.endDate?.trim();
-
-    if (!start && !end) {
-      return "";
-    }
-
-    if (start && end) {
-      return `${start} — ${end}`;
-    }
-
-    return start || end;
-  };
-
-  /*
-   * ---------------------------------------------------------
-   * EDUCATION DATE DISPLAY
-   * ---------------------------------------------------------
-   */
-
-  const getEducationDates = (item) => {
-    const start = item.startDate?.trim();
-    const end = item.endDate?.trim();
-
-    if (!start && !end) {
-      return "";
-    }
-
-    if (start && end) {
-      return `${start} — ${end}`;
-    }
-
-    return start || end;
-  };
-
-  /*
-   * ---------------------------------------------------------
-   * WEBSITE
-   * ---------------------------------------------------------
-   */
-
-  const websiteUrl = profile.website?.trim()
-    ? profile.website.startsWith("http")
-      ? profile.website
-      : `https://${profile.website}`
-    : "";
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-ink text-[12px] tracking-[0.01em]">
