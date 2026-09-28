@@ -72,12 +72,10 @@ function Home() {
           <button className="utility-button">
             <FileText size={12} /> Preview
           </button>
-          <button className="download-button">
+          <button className="utility-button">
             <Download size={12} /> Download PDF
           </button>
-          <button className="profile-button" aria-label="Account">
-            <UserRound size={13} />
-          </button>
+        
         </div>
         <button
           className="mobile-menu"
@@ -90,8 +88,8 @@ function Home() {
 
       <div className="subbar">
         <nav>
-          <a href="#builder">Templates</a>
-          <a href="#workflow">How it works</a>
+          {/* <a href="#builder">Templates</a>
+          <a href="#workflow">How it works</a> */}
           <span className="no-account">
             <LockKeyhole size={9} /> No account required
           </span>

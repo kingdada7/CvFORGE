@@ -204,9 +204,9 @@ function TemplateSelector() {
       ===================================================== */}
 
       <header className="h-[52px] bg-white border-b border-[#edf0f5] flex items-center px-5 gap-4">
-        <Link to="/" className="font-bold text-[15px] tracking-[-0.04em] whitespace-nowrap">
-          CVForge{" "}
-          <span className="inline-block w-1 h-1 rounded-full bg-brand align-top ml-[3px] mt-[2px]" />
+        <Link className="brand" to="/" aria-label="CVForge home">
+          <span className="brand-mark">CV</span>
+          <span>Forge</span>
         </Link>
 
         <div className="h-[18px] w-px bg-[#d8dfeb]" />
@@ -286,7 +286,7 @@ function TemplateSelector() {
             <span className="text-white font-sans mr-[7px] max-[760px]:text-[13px] max-[760px]:mr-0">
               ⇩
             </span>
-          <span className="text-white">  Download PDF</span>
+            <span className="text-white"> Download PDF</span>
           </Link>
         </div>
       </header>
