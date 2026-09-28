@@ -374,8 +374,10 @@ function TemplateSelector() {
           <PersonalInformationForm profile={profile} onUpdate={updateProfile} />
 
           {/* Summary */}
-          <SummarySection />
-
+          <SummarySection
+            summary={profile.summary}
+            onUpdate={(value) => updateProfile("summary", value)}
+          />
           {/* Experience */}
 
           <ExperienceEditor
