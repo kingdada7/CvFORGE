@@ -370,7 +370,7 @@ function TemplateSelector() {
         {/* Editor */}
         <aside className="bg-[#f8fafc] p-[19px] pb-[22px] border-r border-[#e0e7f2] overflow-y-auto max-[1050px]:p-[14px] max-[760px]:border-r-0">
           {/* Personal information */}
-          <PersonalInformationForm />
+          <PersonalInformationForm profile={profile} onUpdate={updateProfile} />
 
           {/* Summary */}
           <SummarySection />
