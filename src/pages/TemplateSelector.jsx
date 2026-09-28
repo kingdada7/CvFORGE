@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { getCVData, saveCVData } from "../utils/cvStorage";
+
+import PersonalInformationForm from "../components/PersonalInformationForm";
+import SummarySection from "../components/SummarySection";
 import SkillSection from "../components/SkillSection";
 import PreviewWorkspace from "../components/PreviewWorkspace";
 import ExperienceEditor from "../components/ExperienceEditor";
 import EducationEditor from "../components/EducationEditor";
-import TemplatePreview from "../components/TemplatePreview";
 import TemplateModal from "../components/TemplateModel";
 import Footer from "../components/Footer";
 
@@ -62,31 +64,7 @@ const normalizeCVData = (savedData) => {
   };
 };
 
-const templateOptions = [
-  {
-    id: "modern",
-    name: "Modern",
-    description:
-      "Clean, contemporary, and professional. Ideal for tech, product, and high-growth roles.",
-    button: "Active Template",
-  },
-  {
-    id: "classic",
-    name: "Classic",
-    description:
-      "Traditional and structured. Built for finance, law, consulting, and corporate leadership.",
-    button: "Apply Classic Template",
-  },
-  {
-    id: "minimal",
-    name: "Minimal",
-    description:
-      "Simple, elegant, and typography-focused. Strips away all noise for maximum reading clarity.",
-    button: "Apply Minimal Template",
-  },
-];
-
-
+const tabIcons = ["♙", "≡", "▣", "⌂", "⌘", "+"];
 
 function TemplateSelector() {
   const [cvData, setCVData] = useState(() => {
@@ -96,7 +74,7 @@ function TemplateSelector() {
   const [activeTab, setActiveTab] = useState("Info");
   const [zoom, setZoom] = useState(100);
   const [isSaved, setIsSaved] = useState(true);
-  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(true);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
   const { profile, experiences, education, skills, selectedTemplate } = cvData;
 
@@ -110,6 +88,84 @@ function TemplateSelector() {
     saveCVData(cvData);
     setIsSaved(true);
   }, [cvData]);
+
+  /*
+   * ---------------------------------------------------------
+   * PROFILE
+   * ---------------------------------------------------------
+   */
+
+  const updateProfile = (field, value) => {
+    setCVData((current) => ({
+      ...current,
+      profile: {
+        ...current.profile,
+        [field]: value,
+      },
+    }));
+
+    setIsSaved(false);
+  };
+
+  /*
+   * ---------------------------------------------------------
+   * EXPERIENCE
+   * ---------------------------------------------------------
+   */
+
+  const updateExperiences = (experiences) => {
+    setCVData((current) => ({
+      ...current,
+      experiences,
+    }));
+
+    setIsSaved(false);
+  };
+
+  /*
+   * ---------------------------------------------------------
+   * EDUCATION
+   * ---------------------------------------------------------
+   */
+
+  const updateEducation = (education) => {
+    setCVData((current) => ({
+      ...current,
+      education,
+    }));
+
+    setIsSaved(false);
+  };
+
+  /*
+   * ---------------------------------------------------------
+   * SKILLS
+   * ---------------------------------------------------------
+   */
+
+  const updateSkills = (skills) => {
+    setCVData((current) => ({
+      ...current,
+      skills,
+    }));
+
+    setIsSaved(false);
+  };
+
+  /*
+   * ---------------------------------------------------------
+   * TEMPLATE
+   * ---------------------------------------------------------
+   */
+
+  const setSelectedTemplate = (template) => {
+    setCVData((current) => ({
+      ...current,
+      selectedTemplate: template,
+    }));
+
+    setIsSaved(false);
+  };
 
   /*
    * ---------------------------------------------------------
@@ -141,10 +197,12 @@ function TemplateSelector() {
       .replace(/[^a-zA-Z0-9_-]/g, "");
   }, [profile.name, profile.headline]);
 
-
   return (
     <div className="min-h-screen bg-[#f8fafc] text-ink text-[12px] tracking-[0.01em]">
-      {/* Top bar */}
+      {/* =====================================================
+          TOP BAR
+      ===================================================== */}
+
       <header className="h-[52px] bg-white border-b border-[#edf0f5] flex items-center px-5 gap-4">
         <div className="font-bold text-[15px] tracking-[-0.04em] whitespace-nowrap">
           CVForge{" "}
@@ -182,6 +240,8 @@ function TemplateSelector() {
         </nav>
 
         <div className="ml-auto flex items-center gap-[18px] whitespace-nowrap">
+          {/* Save status */}
+
           <button
             type="button"
             className={`text-[11px] flex items-center px-[9px] py-[6px] rounded-[4px] ${
@@ -190,41 +250,49 @@ function TemplateSelector() {
                 : "bg-[#fff4e7] text-[#b76a18]"
             }`}
           >
-            <Icon className="font-sans text-[12px]">✓</Icon>
+            <span className="font-sans text-[12px] mr-[7px]">✓</span>
 
             {isSaved ? "Saved" : "Unsaved"}
           </button>
+
+          {/* Template */}
 
           <button
             type="button"
             onClick={() => setIsTemplateModalOpen(true)}
             className="text-[11px] flex items-center hidden xl:flex"
           >
-            <Icon className="text-ink font-sans">◈</Icon>
+            <span className="text-ink font-sans mr-[7px]">◈</span>
             Template
           </button>
+
+          {/* Preview */}
 
           <button
             type="button"
             onClick={() => setZoom(100)}
             className="text-[11px] flex items-center hidden xl:flex"
           >
-            <Icon className="text-ink font-sans">▣</Icon>
+            <span className="text-ink font-sans mr-[7px]">▣</span>
             Preview
           </button>
 
-          <button className="bg-[#090b0f] text-white text-[11px] px-[13px] py-2 rounded-[4px] flex items-center shadow-[0_2px_4px_#0002] max-[760px]:px-2 max-[760px]:text-[0px]">
-            <Link to="/download">
-              <Icon className="text-white font-sans max-[760px]:text-[13px] max-[760px]:!mr-0">
-                ⇩
-              </Icon>
-              Download PDF
-            </Link>
-          </button>
+          {/* Download */}
+
+          <Link
+            to="/download"
+            className="bg-[#090b0f] text-white text-[11px] px-[13px] py-2 rounded-[4px] flex items-center shadow-[0_2px_4px_#0002] max-[760px]:px-2 max-[760px]:text-[0px]"
+          >
+            <span className="text-white font-sans mr-[7px] max-[760px]:text-[13px] max-[760px]:mr-0">
+              ⇩
+            </span>
+            Download PDF
+          </Link>
         </div>
       </header>
 
-      {/* Workspace title */}
+      {/*WORKSPACE TITLE*/}
+
       <div className="h-[29px] bg-white border-b border-[#edf0f5] grid grid-cols-[445px_1fr] items-center px-5 font-mono text-[10px] max-[1050px]:grid-cols-[390px_1fr] max-[760px]:block max-[760px]:h-auto max-[760px]:py-[7px] max-[760px]:px-3">
         <div className="text-brand font-medium">
           DOCUMENT MASTER <span className="text-[#8a93a2] mx-[5px]">•</span>
@@ -241,7 +309,8 @@ function TemplateSelector() {
         </div>
       </div>
 
-      {/* Sub navigation */}
+      {/*SUB NAVIGATION*/}
+
       <div className="h-[47px] bg-white border-b border-[#e2e8f2] flex items-center px-5 gap-[5px] overflow-x-auto">
         {tabs.map((tab, index) => (
           <button
@@ -254,57 +323,60 @@ function TemplateSelector() {
             onClick={() => setActiveTab(tab)}
             key={tab}
           >
-            <Icon
-              className={
+            <span
+              className={`inline-flex w-[17px] justify-center items-center font-serif mr-[7px] ${
                 activeTab === tab ? "text-[#2d2de7]" : "text-[#6b7488]"
-              }
+              }`}
+              aria-hidden="true"
             >
               {tabIcons[index]}
-            </Icon>
+            </span>
 
             {tab}
           </button>
         ))}
       </div>
 
-      {/* Main */}
+      {/*MAIN WORKSPACE */}
+
       <main
         className="grid grid-cols-[445px_1fr] min-h-[calc(100vh-156px)] max-[1050px]:grid-cols-[390px_1fr] max-[760px]:block"
         id="builder"
       >
-        {/* Editor */}
+        {/*EDITOR */}
+
         <aside className="bg-[#f8fafc] p-[19px] pb-[22px] border-r border-[#e0e7f2] overflow-y-auto max-[1050px]:p-[14px] max-[760px]:border-r-0">
-          {/* Personal information */}
+          {/* Personal Information */}
+
           <PersonalInformationForm profile={profile} onUpdate={updateProfile} />
 
           {/* Summary */}
+
           <SummarySection
             summary={profile.summary}
             onUpdate={(value) => updateProfile("summary", value)}
           />
+
           {/* Experience */}
 
           <ExperienceEditor
             experiences={experiences}
             onUpdate={updateExperiences}
           />
+
           {/* Education */}
+
           <EducationEditor education={education} onUpdate={updateEducation} />
 
           {/* Skills */}
-          <SkillSection skills={skills} onUpdate={updateSkills} />
 
-          {/* More */}
-          <button
-            type="button"
-            onClick={addEducation}
-            className="w-full bg-panel text-[#1d2943] rounded-[7px] py-[11px] text-[11px] shadow-[inset_0_0_0_1px_#e6eaff]"
-          >
-            ⊞ &nbsp;Add Section
-          </button>
+          <SkillSection skills={skills} onUpdate={updateSkills} />
         </aside>
 
-        {/* Preview */}
+        {/* =================================================
+            PREVIEW
+        ================================================= */}
+
         <PreviewWorkspace
           cvData={cvData}
           zoom={zoom}
@@ -313,10 +385,12 @@ function TemplateSelector() {
         />
       </main>
 
-      {/* Footer */}
+      {/*  FOOTER*/}
+
       <Footer />
 
-      {/* Template modal */}
+      {/*TEMPLATE MODAL */}
+
       {isTemplateModalOpen && (
         <TemplateModal
           selectedTemplate={selectedTemplate}

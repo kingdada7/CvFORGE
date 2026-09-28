@@ -14,6 +14,10 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import ModernTemplate from "../components/ModernTemplate";
+import ClassicTemplate from "../components/ClassicTemplate";
+import MinimalTemplate from "../components/MinimalTemplate";
+
 // Change this import path if your utility lives somewhere else.
 import { getCVData } from "../utils/cvStorage";
 
@@ -31,20 +35,23 @@ export default function CVPreview() {
     return getCVData() || {};
   }, []);
 
-  const profile = cvData.profile || {};
-  const experience = cvData.experience || [];
-  const education = cvData.education || [];
-  const skills = cvData.skills || [];
+ const profile = cvData.profile || {};
+const experiences = Array.isArray(cvData.experiences)
+  ? cvData.experiences
+  : [];
+const education = Array.isArray(cvData.education)
+  ? cvData.education
+  : [];
+const skills = Array.isArray(cvData.skills)
+  ? cvData.skills
+  : [];
 
-  const fullName =
-    profile.name ||
-    `${profile.firstName || ""} ${profile.lastName || ""}`.trim() ||
-    "Your Name";
+const selectedTemplate = cvData.selectedTemplate || "modern";
 
-  const jobTitle =
-    profile.title ||
-    profile.jobTitle ||
-    "Professional Title";
+
+const fullName = profile.name || "Your Name";
+
+const jobTitle = profile.headline || "Professional Title";
 
   const summary =
     profile.summary ||
