@@ -349,54 +349,55 @@ export default function CVPreview() {
             CV PREVIEW
         ==================================================== */}
         {/* CV PREVIEW */}
-        <div className="min-w-0 w-full flex-1 overflow-x-auto">
-          <div
-            className="mx-auto origin-top transition-transform"
-            style={{
-              width: `min(100%, ${pageWidth})`,
-              transform: `scale(${zoom / 100})`,
-              marginBottom: `${(zoom - 100) * 2}px`,
-            }}
-          >
+        {/* CV PREVIEW */}
+        <div className="w-full min-w-0 flex-1">
+          {/* Scrollable preview area */}
+          <div className="w-full min-w-0 overflow-x-auto">
             <div
-              id="cv-document"
-              className="w-full border border-slate-200 bg-white shadow-xl"
+              className="mx-auto"
               style={{
-                minHeight: pageHeight,
-                padding: pagePadding,
-                boxSizing: "border-box",
+                width: "100%",
+                maxWidth: pageWidth,
               }}
             >
-              {selectedTemplate === "modern" && (
-                <ModernTemplate
-                  profile={profile}
-                  experiences={experiences}
-                  education={education}
-                  skills={skills}
-                />
-              )}
+              <div
+  id="cv-document"
+  className="w-full border border-slate-200 bg-white shadow-xl"
+  style={{
+    minHeight: pageHeight,
+    boxSizing: "border-box",
+  }}
+>
+  {selectedTemplate === "modern" && (
+    <ModernTemplate
+      profile={profile}
+      experiences={experiences}
+      education={education}
+      skills={skills}
+    />
+  )}
 
-              {selectedTemplate === "classic" && (
-                <ClassicTemplate
-                  profile={profile}
-                  experiences={experiences}
-                  education={education}
-                  skills={skills}
-                />
-              )}
+  {selectedTemplate === "classic" && (
+    <ClassicTemplate
+      profile={profile}
+      experiences={experiences}
+      education={education}
+      skills={skills}
+    />
+  )}
 
-              {selectedTemplate === "minimal" && (
-                <MinimalTemplate
-                  profile={profile}
-                  experiences={experiences}
-                  education={education}
-                  skills={skills}
-                />
-              )}
+  {selectedTemplate === "minimal" && (
+    <MinimalTemplate
+      profile={profile}
+      experiences={experiences}
+      education={education}
+      skills={skills}
+    />
+  )}
+</div>
             </div>
           </div>
         </div>
-
         {/* ===================================================
             EXPORT PANEL
         ==================================================== */}
