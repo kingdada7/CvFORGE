@@ -5,7 +5,7 @@ const ModernTemplate = ({
   skills = [],
 }) => {
   return (
-    <article className="min-h-[750px] bg-white p-10 font-sans text-gray-900">
+  <article className="min-h-[750px] bg-white p-5 font-sans text-gray-900 sm:p-8 lg:p-10">
       {/* Header */}
       <header className="border-b border-gray-200 pb-6">
         <h1 className="text-4xl font-bold tracking-tight">

@@ -6,7 +6,7 @@ const ClassicTemplate = ({
   skills = [],
 }) => {
   return (
-    <article className="min-h-[750px] bg-white p-10 font-sans text-gray-900">
+  <article className="min-h-[750px] bg-white p-5 font-sans text-gray-900 sm:p-8 lg:p-10">
       {/* Header */}
       <header className="border-b-2 border-gray-900 pb-6 text-center">
         <h1 className="font-serif text-4xl font-bold tracking-tight">
