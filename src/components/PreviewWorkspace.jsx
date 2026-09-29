@@ -18,24 +18,12 @@ const templateOptions = [
   },
 ];
 
-const PreviewWorkspace = ({
-  cvData,
-  zoom,
-  setZoom,
-  onOpenTemplateModal,
-}) => {
-  const {
-    profile,
-    experiences,
-    education,
-    skills,
-    selectedTemplate,
-  } = cvData;
+const PreviewWorkspace = ({ cvData, zoom, setZoom, onOpenTemplateModal }) => {
+  const { profile, experiences, education, skills, selectedTemplate } = cvData;
 
   const selectedTemplateName =
-    templateOptions.find(
-      (template) => template.id === selectedTemplate
-    )?.name || "Modern";
+    templateOptions.find((template) => template.id === selectedTemplate)
+      ?.name || "Modern";
 
   return (
     <section className="bg-[#f1f5ff] relative px-10 pt-5 pb-[76px] overflow-hidden flex justify-center items-start max-[1050px]:px-5 max-[760px]:min-h-[860px] max-[760px]:px-[10px] max-[760px]:pb-[74px] max-[430px]:min-h-[700px]">
@@ -43,8 +31,7 @@ const PreviewWorkspace = ({
       <div
         className="absolute inset-0 opacity-35 pointer-events-none"
         style={{
-          backgroundImage:
-            "radial-gradient(#b8c4dd 0.7px, transparent 0.7px)",
+          backgroundImage: "radial-gradient(#b8c4dd 0.7px, transparent 0.7px)",
           backgroundSize: "17px 17px",
         }}
       />
@@ -123,11 +110,19 @@ const PreviewWorkspace = ({
         <button
           type="button"
           onClick={onOpenTemplateModal}
-          className="text-[#3d43da] bg-[#f0f2ff] rounded-md text-left leading-[1.2] px-[7px] py-[5px]"
+          className="flex min-w-0 items-center gap-1 rounded-md bg-[#f0f2ff] px-1.5 py-1 text-left text-[#3d43da] sm:px-2 sm:py-1.5"
         >
-          ▣ &nbsp; Editorial
-          <br />
-          {selectedTemplateName}
+          <span className="shrink-0 text-xs">▣</span>
+
+          <span className="min-w-0">
+            <span className="block text-[9px] leading-none text-[#666b80] sm:text-[10px]">
+              Template
+            </span>
+
+            <span className="block max-w-[75px] truncate text-[10px] font-medium sm:max-w-[100px] sm:text-xs">
+              {selectedTemplateName}
+            </span>
+          </span>
         </button>
 
         <i className="h-[19px] w-px bg-[#e2e6ee]" />
