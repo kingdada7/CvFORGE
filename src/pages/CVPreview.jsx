@@ -292,38 +292,37 @@ export default function CVPreview() {
       {/* =====================================================
           TOP BAR
       ====================================================== */}
-      <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-slate-200 text-sm print:hidden">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/template")}
-            className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900"
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-3 text-sm print:hidden sm:px-5">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
+          <Link
+            to="/template"
+            className="flex shrink-0 items-center gap-1.5 text-slate-600 hover:text-slate-900"
           >
             <ArrowLeft size={16} />
-            <Link to="/template">Back to Builder</Link>
-          </button>
+            <span>Back to Builder</span>
+          </Link>
 
-          <div className="flex items-center gap-2 bg-slate-100 rounded-md px-2.5 py-1">
-            <FileText size={15} className="text-blue-600" />
-
-            <span className="font-medium">
+          <div className="flex min-w-0 items-center gap-2 rounded-md bg-slate-100 px-2.5 py-1">
+            <FileText size={15} className="shrink-0 text-blue-600" />
+            <span className="max-w-[150px] truncate font-medium sm:max-w-none">
               {fullName.replace(/\s+/g, "_")}_CV.pdf
             </span>
-
-            <span className="text-slate-500 text-xs">Ready</span>
+            <span className="shrink-0 text-xs text-slate-500">Ready</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+        <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:justify-end">
+          <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
             CV Ready
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-100 rounded-md px-2 py-1">
+          <div className="flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1">
             <button
               onClick={handleZoomOut}
               disabled={zoom <= 50}
-              className="px-1.5 hover:bg-slate-200 rounded disabled:opacity-40"
+              aria-label="Zoom out"
+              className="rounded px-1.5 hover:bg-slate-200 disabled:opacity-40"
             >
               <Minus size={14} />
             </button>
@@ -333,7 +332,8 @@ export default function CVPreview() {
             <button
               onClick={handleZoomIn}
               disabled={zoom >= 150}
-              className="px-1.5 hover:bg-slate-200 rounded disabled:opacity-40"
+              aria-label="Zoom in"
+              className="rounded px-1.5 hover:bg-slate-200 disabled:opacity-40"
             >
               <Plus size={14} />
             </button>
@@ -344,25 +344,27 @@ export default function CVPreview() {
       {/* =====================================================
           MAIN CONTENT
       ====================================================== */}
-      <div className="flex gap-6 p-6 max-w-[1600px] mx-auto">
+      <div className="mx-auto flex w-full max-w-[1600px] min-w-0 flex-col gap-5 p-3 sm:gap-6 sm:p-5 lg:flex-row lg:p-6">
         {/* ===================================================
             CV PREVIEW
         ==================================================== */}
-        <div className="flex-1 overflow-auto">
+        {/* CV PREVIEW */}
+        <div className="min-w-0 w-full flex-1 overflow-x-auto">
           <div
-            className="mx-auto transition-transform origin-top"
+            className="mx-auto origin-top transition-transform"
             style={{
-              width: pageWidth,
+              width: `min(100%, ${pageWidth})`,
               transform: `scale(${zoom / 100})`,
               marginBottom: `${(zoom - 100) * 2}px`,
             }}
           >
             <div
               id="cv-document"
-              className="bg-white shadow-xl border border-slate-200"
+              className="w-full border border-slate-200 bg-white shadow-xl"
               style={{
                 minHeight: pageHeight,
                 padding: pagePadding,
+                boxSizing: "border-box",
               }}
             >
               {selectedTemplate === "modern" && (
@@ -398,8 +400,8 @@ export default function CVPreview() {
         {/* ===================================================
             EXPORT PANEL
         ==================================================== */}
-        <div className="w-[380px] flex-shrink-0 print:hidden">
-          <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+        <div className="w-full min-w-0 print:hidden lg:w-[380px] lg:flex-shrink-0">
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
             {/* Header */}
             <div className="px-5 pt-5 pb-4 flex items-start justify-between">
               <div>
