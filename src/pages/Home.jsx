@@ -120,9 +120,9 @@ function Home() {
               <Link to="/template" className="primary-button">
                 Create my CV <ArrowRight size={13} />
               </Link>
-              <button className="secondary-button">
+              {/* <button className="secondary-button">
                 <LayoutTemplate size={13} /> Explore templates
-              </button>
+              </button> */}
             </div>
             <div className="hero-stats">
               <div>
