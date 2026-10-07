@@ -5,15 +5,13 @@ const templateOptions = [
   {
     id: "modern",
     name: "Modern",
-    description:
-      "A clean contemporary layout with strong visual hierarchy.",
+    description: "A clean contemporary layout with strong visual hierarchy.",
     button: "Use Modern",
   },
   {
     id: "classic",
     name: "Classic",
-    description:
-      "A traditional professional layout suitable for formal CVs.",
+    description: "A traditional professional layout suitable for formal CVs.",
     button: "Use Classic",
   },
   {
@@ -22,6 +20,14 @@ const templateOptions = [
     description:
       "A simple, spacious layout focused on clarity and readability.",
     button: "Use Minimal",
+  },
+
+  {
+    id: "executive",
+    name: "Executive",
+    description:
+      "A refined corporate layout built for experienced professionals and leadership roles.",
+    button: "Use Executive",
   },
 ];
 
@@ -143,9 +149,7 @@ function TemplateModal({
               <span className="mr-2 text-[17px] leading-none text-brand">
                 ◉
               </span>
-              <span>
-                All templates are ATS-friendly and PDF export ready.
-              </span>
+              <span>All templates are ATS-friendly and PDF export ready.</span>
             </span>
 
             <div className="flex w-full gap-2 sm:w-auto sm:shrink-0">
