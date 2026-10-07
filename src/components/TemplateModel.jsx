@@ -102,7 +102,9 @@ function TemplateModal({
                             ? "bg-[#4f45e3]"
                             : template.id === "classic"
                               ? "bg-[#233044]"
-                              : "bg-[#737887]"
+                              : template.id === "minimal"
+                                ? "bg-[#737887]"
+                                : "bg-[#1f3a5f]"
                         }`}
                       />
 
