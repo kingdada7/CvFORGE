@@ -157,123 +157,174 @@ export default function CVPreview() {
     window.print();
   };
 
-  const handleDownloadPDF = async () => {
-    const element = document.getElementById("cv-document");
 
-    if (!element) {
-      alert("CV document was not found.");
-      return;
+const handleDownloadPDF = async () => {
+  const element = document.getElementById("cv-document");
+
+  if (!element) {
+    alert("CV document was not found.");
+    return;
+  }
+
+  let wrapper;
+
+  try {
+    setIsDownloading(true);
+
+    // Wait for fonts before capturing the CV.
+    if (document.fonts?.ready) {
+      await document.fonts.ready;
     }
 
-    try {
-      setIsDownloading(true);
+    // Use the actual dimensions of the selected paper.
+    const isA4 = paper === "a4";
 
-      // Create a temporary wrapper
-      const wrapper = document.createElement("div");
+    const pageWidth = isA4 ? 794 : 816;
+    const pageHeight = isA4 ? 1123 : 1056;
 
-      wrapper.style.position = "fixed";
-      wrapper.style.left = "0";
-      wrapper.style.top = "0";
-      wrapper.style.width = "794px";
-      wrapper.style.background = "#ffffff";
-      wrapper.style.zIndex = "-9999";
-      wrapper.style.pointerEvents = "none";
+    // Match the selected margin setting.
+    const pageMargin = margins === "balanced" ? 18 : 12;
 
-      // Clone the CV
-      const clone = element.cloneNode(true);
+    // Create an isolated export container.
+    wrapper = document.createElement("div");
 
-      clone.style.width = "794px";
-      clone.style.minHeight = "1123px";
-      clone.style.height = "auto";
-      clone.style.padding = element.style.padding;
-      clone.style.margin = "0";
-      clone.style.backgroundColor = "#ffffff";
-      clone.style.color = "#0f172a";
-      clone.style.border = "none";
-      clone.style.boxShadow = "none";
-      clone.style.transform = "none";
+    Object.assign(wrapper.style, {
+      position: "fixed",
+      left: "0",
+      top: "0",
+      width: `${pageWidth}px`,
+      backgroundColor: "#ffffff",
+      zIndex: "99999",
+      pointerEvents: "none",
+      opacity: "0",
+      overflow: "visible",
+    });
 
-      wrapper.appendChild(clone);
-      document.body.appendChild(wrapper);
+    const clone = element.cloneNode(true);
 
-      // Give the browser a moment to render the clone
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    Object.assign(clone.style, {
+      width: `${pageWidth}px`,
+      minWidth: `${pageWidth}px`,
+      maxWidth: `${pageWidth}px`,
+      minHeight: "0",
+      height: "auto",
+      boxSizing: "border-box",
+      margin: "0",
+      transform: "none",
+      boxShadow: "none",
+      border: "none",
+      backgroundColor: "#ffffff",
+      color: "#0f172a",
+      overflow: "visible",
+    });
 
-      // Replace unsupported OKLCH colors
-      const allElements = clone.querySelectorAll("*");
+    // Apply margins consistently to the exported document.
+    // Remove this padding if your template already includes
+    // its own page-margin system.
+    clone.style.padding = `${pageMargin}mm`;
 
-      allElements.forEach((el) => {
-        const styles = window.getComputedStyle(el);
+    // Avoid carrying preview-only attributes into the export.
+    clone.removeAttribute("id");
+    clone.id = "cv-document-export";
 
-        if (styles.color.includes("oklch")) {
-          el.style.color = "#0f172a";
+    // Prevent buttons, form controls, or interactive elements
+    // from appearing in the downloaded CV.
+    clone.querySelectorAll(
+      "button, input, select, textarea"
+    ).forEach((node) => node.remove());
+
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
+
+    // Wait for the cloned document's images to finish loading.
+    const images = Array.from(clone.querySelectorAll("img"));
+
+    await Promise.all(
+      images.map((img) => {
+        if (img.complete) {
+          return Promise.resolve();
         }
 
-        if (styles.backgroundColor.includes("oklch")) {
-          el.style.backgroundColor = "#ffffff";
-        }
+        return new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      })
+    );
 
-        if (styles.borderColor.includes("oklch")) {
-          el.style.borderColor = "#e2e8f0";
-        }
+    // Let the browser calculate the final layout.
+    await new Promise((resolve) =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(resolve)
+      )
+    );
 
-        if (styles.boxShadow.includes("oklch")) {
-          el.style.boxShadow = "none";
-        }
-      });
+    const safeName =
+      fullName
+        .trim()
+        .replace(/[^a-z0-9]/gi, "_")
+        .replace(/_+/g, "_")
+        .replace(/^_|_$/g, "") || "CV";
 
-      const safeName =
-        fullName
-          .replace(/[^a-z0-9]/gi, "_")
-          .replace(/_+/g, "_")
-          .replace(/^_|_$/g, "") || "CV";
+    await html2pdf()
+      .set({
+        filename: `${safeName}_CV.pdf`,
 
-      await html2pdf()
-        .set({
-          margin: 0,
+        margin: 0,
 
-          filename: `${safeName}_CV.pdf`,
+        image: {
+          type: "jpeg",
+          quality: 1,
+        },
 
-          image: {
-            type: "jpeg",
-            quality: 0.98,
-          },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: "#ffffff",
+          logging: false,
+          width: pageWidth,
+          windowWidth: pageWidth,
+          scrollX: 0,
+          scrollY: 0,
+        },
 
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: "#ffffff",
-            logging: false,
+        jsPDF: {
+          unit: "mm",
+          format: isA4 ? "a4" : "letter",
+          orientation: "portrait",
+          compress: true,
+        },
 
-            // Important for the cloned element
-            width: 794,
-            windowWidth: 794,
-          },
+        pagebreak: {
+          mode: ["css", "legacy"],
+          avoid: [
+            "h1",
+            "h2",
+            "h3",
+            ".cv-section",
+            ".experience-item",
+            ".education-item",
+          ],
+        },
+      })
+      .from(clone)
+      .save();
 
-          jsPDF: {
-            unit: "mm",
-            format: paper === "a4" ? "a4" : "letter",
-            orientation: "portrait",
-          },
+  } catch (error) {
+    console.error("PDF generation failed:", error);
+    alert("Unable to generate your CV. Please try again.");
 
-          pagebreak: {
-            mode: ["css", "legacy"],
-          },
-        })
-        .from(clone)
-        .save();
-
-      // Clean up
-      document.body.removeChild(wrapper);
-
-      console.log("PDF DOWNLOAD SUCCESS");
-    } catch (error) {
-      console.error("PDF generation failed:", error);
-      alert("PDF generation failed. Check the console.");
-    } finally {
-      setIsDownloading(false);
+  } finally {
+    // Always remove the temporary export container.
+    if (wrapper?.parentNode) {
+      wrapper.parentNode.removeChild(wrapper);
     }
-  };
+
+    setIsDownloading(false);
+  }
+};
+
 
   const handleZoomIn = () => {
     setZoom((current) => Math.min(current + 10, 150));
