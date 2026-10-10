@@ -56,12 +56,12 @@ function Home() {
           <span className="brand-mark">CV</span>
           <span>Forge</span>
         </a>
-        <nav className={menuOpen ? "main-nav is-open" : "main-nav"}>
+        {/* <nav className={menuOpen ? "main-nav is-open" : "main-nav"}>
           <a href="#builder">Builder</a>
           <a href="#templates">Templates</a>
           <a href="#templates">Examples</a>
           <a href="#privacy">Editorial Guide</a>
-        </nav>
+        </nav> */}
         <div className="top-actions">
           <button className="saved-pill">
             <Check size={11} strokeWidth={3} /> Saved
@@ -77,13 +77,13 @@ function Home() {
           </button>
         
         </div>
-        <button
+        {/* <button
           className="mobile-menu"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
           {menuOpen ? <X size={18} /> : <Menu size={18} />}
-        </button>
+        </button> */}
       </header>
 
       <div className="subbar">
