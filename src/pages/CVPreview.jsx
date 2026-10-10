@@ -232,15 +232,16 @@ export default function CVPreview() {
   };
 
  
+
 const handleDownloadPDF = async () => {
   const element = document.getElementById("cv-document");
 
   if (!element) {
-    alert("CV document was not found.");
+    toast.error("CV document was not found.");
     return;
   }
 
-  let wrapper;
+  let iframe;
 
   try {
     setIsDownloading(true);
@@ -250,23 +251,74 @@ const handleDownloadPDF = async () => {
     }
 
     const isA4 = paper === "a4";
+    const renderWidth = isA4 ? 794 : 816;
     const pageMargin = margins === "balanced" ? 18 : 12;
 
-    // Use CSS pixels for rendering.
-    const renderWidth = isA4 ? 794 : 816;
+    // Create a separate rendering environment.
+    iframe = document.createElement("iframe");
 
-    wrapper = document.createElement("div");
-
-    Object.assign(wrapper.style, {
+    Object.assign(iframe.style, {
       position: "fixed",
-      left: "0",
+      left: "-10000px",
       top: "0",
       width: `${renderWidth}px`,
-      background: "#ffffff",
-      zIndex: "99999",
+      height: "1200px",
+      border: "0",
+      visibility: "visible",
       pointerEvents: "none",
-      opacity: "0",
     });
+
+    document.body.appendChild(iframe);
+
+    const exportDocument = iframe.contentDocument;
+    const exportWindow = iframe.contentWindow;
+
+    if (!exportDocument || !exportWindow) {
+      throw new Error("Could not create the export document.");
+    }
+
+    exportDocument.open();
+    exportDocument.write(
+      "<!doctype html><html><head><meta charset='UTF-8'></head><body></body></html>"
+    );
+    exportDocument.close();
+
+    // Copy the app's styles into the export document.
+    const stylesheetNodes = document.head.querySelectorAll(
+      'link[rel="stylesheet"], style'
+    );
+
+    const stylesheetLoads = [];
+
+    stylesheetNodes.forEach((node) => {
+      const copiedNode = node.cloneNode(true);
+
+      if (
+        copiedNode.tagName === "LINK" &&
+        copiedNode.href
+      ) {
+        const loaded = new Promise((resolve) => {
+          copiedNode.onload = resolve;
+          copiedNode.onerror = resolve;
+        });
+
+        stylesheetLoads.push(loaded);
+      }
+
+      exportDocument.head.appendChild(copiedNode);
+    });
+
+    // Give the export page a desktop viewport.
+    exportDocument.documentElement.style.width =
+      `${renderWidth}px`;
+
+    exportDocument.documentElement.style.minWidth =
+      `${renderWidth}px`;
+
+    exportDocument.body.style.width = `${renderWidth}px`;
+    exportDocument.body.style.minWidth = `${renderWidth}px`;
+    exportDocument.body.style.margin = "0";
+    exportDocument.body.style.background = "#ffffff";
 
     const clone = element.cloneNode(true);
 
@@ -274,11 +326,12 @@ const handleDownloadPDF = async () => {
     clone.id = "cv-document-export";
 
     Object.assign(clone.style, {
+      display: "block",
       width: `${renderWidth}px`,
       minWidth: `${renderWidth}px`,
       maxWidth: `${renderWidth}px`,
-      height: "auto",
       minHeight: "0",
+      height: "auto",
       boxSizing: "border-box",
       margin: "0",
       padding: `${pageMargin}mm`,
@@ -290,14 +343,19 @@ const handleDownloadPDF = async () => {
       color: "#0f172a",
     });
 
-    clone.querySelectorAll(
-      "button, input, select, textarea"
-    ).forEach((node) => node.remove());
+    clone
+      .querySelectorAll("button, input, select, textarea")
+      .forEach((node) => node.remove());
 
-    wrapper.appendChild(clone);
-    document.body.appendChild(wrapper);
+    exportDocument.body.appendChild(clone);
 
-    // Wait for images in the cloned CV.
+    await Promise.all(stylesheetLoads);
+
+    if (exportDocument.fonts?.ready) {
+      await exportDocument.fonts.ready;
+    }
+
+    // Wait for images in the cloned document.
     await Promise.all(
       Array.from(clone.querySelectorAll("img")).map((img) => {
         if (img.complete) return Promise.resolve();
@@ -309,19 +367,23 @@ const handleDownloadPDF = async () => {
       })
     );
 
-    await new Promise((resolve) =>
-      requestAnimationFrame(() =>
-        requestAnimationFrame(resolve)
-      )
-    );
+    await new Promise((resolve) => {
+      exportWindow.requestAnimationFrame(() => {
+        exportWindow.requestAnimationFrame(resolve);
+      });
+    });
 
-    // Render using html2canvas-pro.
+    // Render at the desktop viewport width.
     const canvas = await html2canvas(clone, {
       scale: 2,
       useCORS: true,
       backgroundColor: "#ffffff",
       logging: false,
       windowWidth: renderWidth,
+      windowHeight: Math.max(
+        clone.scrollHeight,
+        1200
+      ),
       width: renderWidth,
       scrollX: 0,
       scrollY: 0,
@@ -338,7 +400,6 @@ const handleDownloadPDF = async () => {
         .replace(/_+/g, "_")
         .replace(/^_|_$/g, "") || "CV";
 
-    // Create a PDF in the selected paper size.
     const pdf = new jsPDF({
       orientation: "portrait",
       unit: "mm",
@@ -349,7 +410,6 @@ const handleDownloadPDF = async () => {
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    // Scale the canvas to the PDF's printable width.
     const renderedHeight =
       (canvas.height * pdfWidth) / canvas.width;
 
@@ -358,9 +418,8 @@ const handleDownloadPDF = async () => {
       Math.ceil(renderedHeight / pdfHeight)
     );
 
-    const imageData = canvas.toDataURL("image/jpeg", 0.98);
+    const imageData = canvas.toDataURL("image/jpeg", 0.95);
 
-    // Place each section of the rendered CV on a PDF page.
     for (let page = 0; page < pageCount; page++) {
       if (page > 0) {
         pdf.addPage(isA4 ? "a4" : "letter", "portrait");
@@ -379,16 +438,12 @@ const handleDownloadPDF = async () => {
     }
 
     pdf.save(`${safeName}_CV.pdf`);
-
+    toast.success("CV exported successfully.");
   } catch (error) {
     console.error("PDF generation failed:", error);
-    alert("Unable to generate your CV. Please try again.");
-
+    toast.error("Unable to generate your CV. Please try again.");
   } finally {
-    if (wrapper?.parentNode) {
-      wrapper.parentNode.removeChild(wrapper);
-    }
-
+    iframe?.remove();
     setIsDownloading(false);
   }
 };
