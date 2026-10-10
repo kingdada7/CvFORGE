@@ -60,6 +60,28 @@ export default function CVPreview() {
   const location = profile.location || "Lagos, Nigeria";
   const website = profile.website || profile.linkedin || "";
 
+
+
+
+
+
+const inlineComputedStyles = (root) => {
+  const elements = [root, ...root.querySelectorAll("*")];
+
+  elements.forEach((element) => {
+    const computed = window.getComputedStyle(element);
+
+    for (let i = 0; i < computed.length; i++) {
+      const property = computed.item(i);
+      const value = computed.getPropertyValue(property);
+
+      if (value) {
+        element.style.setProperty(property, value);
+      }
+    }
+  });
+};
+
   /*
    * Converts the CV data into plain text.
    * This is useful for ATS text copying and can also be
