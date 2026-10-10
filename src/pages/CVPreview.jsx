@@ -1,6 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import html2pdf from "html2pdf.js";
+import html2canvas from "html2canvas-pro";
+import { jsPDF } from "jspdf";
+import { toast } from "react-hot-toast";
 import {
   ArrowLeft,
   Check,
@@ -157,7 +160,78 @@ export default function CVPreview() {
     window.print();
   };
 
+  const sanitizeColors = (root) => {
+    const elements = [root, ...root.querySelectorAll("*")];
 
+    const colorProperties = [
+      "color",
+      "backgroundColor",
+      "borderTopColor",
+      "borderRightColor",
+      "borderBottomColor",
+      "borderLeftColor",
+      "outlineColor",
+      "textDecorationColor",
+      "columnRuleColor",
+      "fill",
+      "stroke",
+      "caretColor",
+    ];
+
+    const resolveColor = (value) => {
+      if (!value || !value.includes("oklch")) {
+        return value;
+      }
+
+      const probe = document.createElement("span");
+
+      probe.style.cssText = "position:absolute;visibility:hidden;";
+
+      probe.style.color = value;
+
+      document.body.appendChild(probe);
+
+      const resolved = getComputedStyle(probe).color;
+
+      probe.remove();
+
+      return resolved && !resolved.includes("oklch") ? resolved : null;
+    };
+
+    elements.forEach((el) => {
+      const computed = getComputedStyle(el);
+
+      colorProperties.forEach((property) => {
+        const value = computed[property];
+
+        if (value?.includes("oklch")) {
+          const resolved = resolveColor(value);
+
+          if (resolved) {
+            el.style.setProperty(
+              property.replace(
+                /[A-Z]/g,
+                (letter) => `-${letter.toLowerCase()}`,
+              ),
+              resolved,
+              "important",
+            );
+          }
+        }
+      });
+
+      // Shadows may also contain unsupported color functions.
+      if (computed.boxShadow?.includes("oklch")) {
+        el.style.setProperty("box-shadow", "none", "important");
+      }
+
+      if (computed.textShadow?.includes("oklch")) {
+        el.style.setProperty("text-shadow", "none", "important");
+      }
+    });
+  };
+
+ 
 const handleDownloadPDF = async () => {
   const element = document.getElementById("cv-document");
 
@@ -171,64 +245,51 @@ const handleDownloadPDF = async () => {
   try {
     setIsDownloading(true);
 
-    // Wait for fonts before capturing the CV.
     if (document.fonts?.ready) {
       await document.fonts.ready;
     }
 
-    // Use the actual dimensions of the selected paper.
     const isA4 = paper === "a4";
-
-    const pageWidth = isA4 ? 794 : 816;
-    const pageHeight = isA4 ? 1123 : 1056;
-
-    // Match the selected margin setting.
     const pageMargin = margins === "balanced" ? 18 : 12;
 
-    // Create an isolated export container.
+    // Use CSS pixels for rendering.
+    const renderWidth = isA4 ? 794 : 816;
+
     wrapper = document.createElement("div");
 
     Object.assign(wrapper.style, {
       position: "fixed",
       left: "0",
       top: "0",
-      width: `${pageWidth}px`,
-      backgroundColor: "#ffffff",
+      width: `${renderWidth}px`,
+      background: "#ffffff",
       zIndex: "99999",
       pointerEvents: "none",
       opacity: "0",
-      overflow: "visible",
     });
 
     const clone = element.cloneNode(true);
 
-    Object.assign(clone.style, {
-      width: `${pageWidth}px`,
-      minWidth: `${pageWidth}px`,
-      maxWidth: `${pageWidth}px`,
-      minHeight: "0",
-      height: "auto",
-      boxSizing: "border-box",
-      margin: "0",
-      transform: "none",
-      boxShadow: "none",
-      border: "none",
-      backgroundColor: "#ffffff",
-      color: "#0f172a",
-      overflow: "visible",
-    });
-
-    // Apply margins consistently to the exported document.
-    // Remove this padding if your template already includes
-    // its own page-margin system.
-    clone.style.padding = `${pageMargin}mm`;
-
-    // Avoid carrying preview-only attributes into the export.
     clone.removeAttribute("id");
     clone.id = "cv-document-export";
 
-    // Prevent buttons, form controls, or interactive elements
-    // from appearing in the downloaded CV.
+    Object.assign(clone.style, {
+      width: `${renderWidth}px`,
+      minWidth: `${renderWidth}px`,
+      maxWidth: `${renderWidth}px`,
+      height: "auto",
+      minHeight: "0",
+      boxSizing: "border-box",
+      margin: "0",
+      padding: `${pageMargin}mm`,
+      transform: "none",
+      boxShadow: "none",
+      border: "none",
+      overflow: "visible",
+      backgroundColor: "#ffffff",
+      color: "#0f172a",
+    });
+
     clone.querySelectorAll(
       "button, input, select, textarea"
     ).forEach((node) => node.remove());
@@ -236,14 +297,10 @@ const handleDownloadPDF = async () => {
     wrapper.appendChild(clone);
     document.body.appendChild(wrapper);
 
-    // Wait for the cloned document's images to finish loading.
-    const images = Array.from(clone.querySelectorAll("img"));
-
+    // Wait for images in the cloned CV.
     await Promise.all(
-      images.map((img) => {
-        if (img.complete) {
-          return Promise.resolve();
-        }
+      Array.from(clone.querySelectorAll("img")).map((img) => {
+        if (img.complete) return Promise.resolve();
 
         return new Promise((resolve) => {
           img.onload = resolve;
@@ -252,12 +309,27 @@ const handleDownloadPDF = async () => {
       })
     );
 
-    // Let the browser calculate the final layout.
     await new Promise((resolve) =>
       requestAnimationFrame(() =>
         requestAnimationFrame(resolve)
       )
     );
+
+    // Render using html2canvas-pro.
+    const canvas = await html2canvas(clone, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      windowWidth: renderWidth,
+      width: renderWidth,
+      scrollX: 0,
+      scrollY: 0,
+    });
+
+    if (!canvas.width || !canvas.height) {
+      throw new Error("The CV produced an empty canvas.");
+    }
 
     const safeName =
       fullName
@@ -266,57 +338,53 @@ const handleDownloadPDF = async () => {
         .replace(/_+/g, "_")
         .replace(/^_|_$/g, "") || "CV";
 
-    await html2pdf()
-      .set({
-        filename: `${safeName}_CV.pdf`,
+    // Create a PDF in the selected paper size.
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: isA4 ? "a4" : "letter",
+      compress: true,
+    });
 
-        margin: 0,
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
 
-        image: {
-          type: "jpeg",
-          quality: 1,
-        },
+    // Scale the canvas to the PDF's printable width.
+    const renderedHeight =
+      (canvas.height * pdfWidth) / canvas.width;
 
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          allowTaint: false,
-          backgroundColor: "#ffffff",
-          logging: false,
-          width: pageWidth,
-          windowWidth: pageWidth,
-          scrollX: 0,
-          scrollY: 0,
-        },
+    const pageCount = Math.max(
+      1,
+      Math.ceil(renderedHeight / pdfHeight)
+    );
 
-        jsPDF: {
-          unit: "mm",
-          format: isA4 ? "a4" : "letter",
-          orientation: "portrait",
-          compress: true,
-        },
+    const imageData = canvas.toDataURL("image/jpeg", 0.98);
 
-        pagebreak: {
-          mode: ["css", "legacy"],
-          avoid: [
-            "h1",
-            "h2",
-            "h3",
-            ".cv-section",
-            ".experience-item",
-            ".education-item",
-          ],
-        },
-      })
-      .from(clone)
-      .save();
+    // Place each section of the rendered CV on a PDF page.
+    for (let page = 0; page < pageCount; page++) {
+      if (page > 0) {
+        pdf.addPage(isA4 ? "a4" : "letter", "portrait");
+      }
+
+      pdf.addImage(
+        imageData,
+        "JPEG",
+        0,
+        -(page * pdfHeight),
+        pdfWidth,
+        renderedHeight,
+        undefined,
+        "FAST"
+      );
+    }
+
+    pdf.save(`${safeName}_CV.pdf`);
 
   } catch (error) {
     console.error("PDF generation failed:", error);
     alert("Unable to generate your CV. Please try again.");
 
   } finally {
-    // Always remove the temporary export container.
     if (wrapper?.parentNode) {
       wrapper.parentNode.removeChild(wrapper);
     }
@@ -324,8 +392,6 @@ const handleDownloadPDF = async () => {
     setIsDownloading(false);
   }
 };
-
-
   const handleZoomIn = () => {
     setZoom((current) => Math.min(current + 10, 150));
   };
