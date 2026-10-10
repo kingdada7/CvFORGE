@@ -231,68 +231,147 @@ export default function CVPreview() {
     });
   };
 
-  const handleDownloadPDF = async () => {
-    const element = document.getElementById("cv-document");
+ 
 
-    if (!element) {
-      toast.error("CV document was not found.");
-      return;
+const handleDownloadPDF = async () => {
+  const element = document.getElementById("cv-document");
+
+  if (!element) {
+    toast.error("CV document was not found.");
+    return;
+  }
+
+  let exportClone;
+
+  try {
+    setIsDownloading(true);
+
+    if (document.fonts?.ready) {
+      await document.fonts.ready;
     }
 
-    try {
-      setIsDownloading(true);
+    const isA4 = paper === "a4";
+    const renderWidth = isA4 ? 794 : 816;
 
-      // Wait for fonts to finish loading.
-      if (document.fonts?.ready) {
-        await document.fonts.ready;
-      }
+    exportClone = element.cloneNode(true);
+    exportClone.id = "cv-document-export";
 
-      // Wait for the browser to finish layout and painting.
-      await new Promise((resolve) => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(resolve);
+    Object.assign(exportClone.style, {
+      position: "absolute",
+      top: "0",
+      left: "-10000px",
+      width: `${renderWidth}px`,
+      minWidth: `${renderWidth}px`,
+      maxWidth: `${renderWidth}px`,
+      height: "auto",
+      minHeight: "0",
+      margin: "0",
+      padding: "0",
+      boxSizing: "border-box",
+      overflow: "visible",
+      transform: "none",
+      boxShadow: "none",
+      border: "none",
+      backgroundColor: "#ffffff",
+      color: "#0f172a",
+      pointerEvents: "none",
+    });
+
+    exportClone
+      .querySelectorAll("button, input, select, textarea")
+      .forEach((node) => node.remove());
+
+    document.body.appendChild(exportClone);
+
+    // Let the clone inherit the application's loaded styles.
+    await new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(resolve);
+      });
+    });
+
+    // Convert unsupported computed color values where possible.
+    sanitizeColors(exportClone);
+
+    await Promise.all(
+      Array.from(exportClone.querySelectorAll("img")).map((img) => {
+        if (img.complete && img.naturalWidth > 0) {
+          return Promise.resolve();
+        }
+
+        return new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve;
         });
-      });
+      }),
+    );
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: true,
+    const canvas = await html2canvas(exportClone, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: true,
+      width: renderWidth,
+      height: exportClone.scrollHeight,
+      windowWidth: renderWidth,
+      windowHeight: Math.max(exportClone.scrollHeight, 1200),
+      scrollX: 0,
+      scrollY: 0,
+    });
 
-        // Capture the actual preview element.
-        width: element.scrollWidth,
-        height: element.scrollHeight,
+    if (!canvas.width || !canvas.height) {
+      throw new Error("The CV produced an empty canvas.");
+    }
 
-        // Preserve the current browser viewport for this diagnostic.
-        windowWidth: document.documentElement.clientWidth,
-        windowHeight: Math.max(
-          document.documentElement.clientHeight,
-          element.scrollHeight,
-        ),
+    const safeName =
+      fullName
+        .trim()
+        .replace(/[^a-z0-9]/gi, "_")
+        .replace(/_+/g, "_")
+        .replace(/^_|_$/g, "") || "CV";
 
-        scrollX: 0,
-        scrollY: 0,
-      });
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: isA4 ? "a4" : "letter",
+      compress: true,
+    });
 
-      if (!canvas.width || !canvas.height) {
-        throw new Error("The CV produced an empty canvas.");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const renderedHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    const imageData = canvas.toDataURL("image/jpeg", 0.95);
+    const pageCount = Math.max(1, Math.ceil(renderedHeight / pdfHeight));
+
+    for (let page = 0; page < pageCount; page++) {
+      if (page > 0) {
+        pdf.addPage(isA4 ? "a4" : "letter", "portrait");
       }
 
-      // Diagnostic only: check whether styling survives canvas rendering.
-      const testLink = document.createElement("a");
-      testLink.download = "cvforge-original-capture.png";
-      testLink.href = canvas.toDataURL("image/png");
-      testLink.click();
-
-      toast.success("Capture generated. Check the PNG styling.");
-    } catch (error) {
-      console.error("CV capture failed:", error);
-      toast.error("Unable to capture your CV. Please try again.");
-    } finally {
-      setIsDownloading(false);
+      pdf.addImage(
+        imageData,
+        "JPEG",
+        0,
+        -(page * pdfHeight),
+        pdfWidth,
+        renderedHeight,
+        undefined,
+        "FAST",
+      );
     }
-  };
+
+    pdf.save(`${safeName}_CV.pdf`);
+    toast.success("CV exported successfully.");
+  } catch (error) {
+    console.error("PDF generation failed:", error);
+    toast.error("Unable to generate your CV. Please try again.");
+  } finally {
+    exportClone?.remove();
+    setIsDownloading(false);
+  }
+};
+
   const handleZoomIn = () => {
     setZoom((current) => Math.min(current + 10, 150));
   };
