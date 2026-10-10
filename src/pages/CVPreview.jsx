@@ -231,222 +231,208 @@ export default function CVPreview() {
     });
   };
 
- 
+  const handleDownloadPDF = async () => {
+    const element = document.getElementById("cv-document");
 
-const handleDownloadPDF = async () => {
-  const element = document.getElementById("cv-document");
-
-  if (!element) {
-    toast.error("CV document was not found.");
-    return;
-  }
-
-  let iframe;
-
-  try {
-    setIsDownloading(true);
-
-    if (document.fonts?.ready) {
-      await document.fonts.ready;
+    if (!element) {
+      toast.error("CV document was not found.");
+      return;
     }
 
-    const isA4 = paper === "a4";
-    const renderWidth = isA4 ? 794 : 816;
-    const pageMargin = margins === "balanced" ? 18 : 12;
+    let iframe;
 
-    // Create a separate rendering environment.
-    iframe = document.createElement("iframe");
+    try {
+      setIsDownloading(true);
 
-    Object.assign(iframe.style, {
-      position: "fixed",
-      left: "-10000px",
-      top: "0",
-      width: `${renderWidth}px`,
-      height: "1200px",
-      border: "0",
-      visibility: "visible",
-      pointerEvents: "none",
-    });
-
-    document.body.appendChild(iframe);
-
-    const exportDocument = iframe.contentDocument;
-    const exportWindow = iframe.contentWindow;
-
-    if (!exportDocument || !exportWindow) {
-      throw new Error("Could not create the export document.");
-    }
-
-    exportDocument.open();
-    exportDocument.write(
-      "<!doctype html><html><head><meta charset='UTF-8'></head><body></body></html>"
-    );
-    exportDocument.close();
-
-    // Copy the app's styles into the export document.
-    const stylesheetNodes = document.head.querySelectorAll(
-      'link[rel="stylesheet"], style'
-    );
-
-    const stylesheetLoads = [];
-
-    stylesheetNodes.forEach((node) => {
-      const copiedNode = node.cloneNode(true);
-
-      if (
-        copiedNode.tagName === "LINK" &&
-        copiedNode.href
-      ) {
-        const loaded = new Promise((resolve) => {
-          copiedNode.onload = resolve;
-          copiedNode.onerror = resolve;
-        });
-
-        stylesheetLoads.push(loaded);
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
       }
 
-      exportDocument.head.appendChild(copiedNode);
-    });
+      const isA4 = paper === "a4";
+      const renderWidth = isA4 ? 794 : 816;
+      const pageMargin = margins === "balanced" ? 18 : 12;
 
-    // Give the export page a desktop viewport.
-    exportDocument.documentElement.style.width =
-      `${renderWidth}px`;
+      // Create a separate rendering environment.
+      iframe = document.createElement("iframe");
 
-    exportDocument.documentElement.style.minWidth =
-      `${renderWidth}px`;
-
-    exportDocument.body.style.width = `${renderWidth}px`;
-    exportDocument.body.style.minWidth = `${renderWidth}px`;
-    exportDocument.body.style.margin = "0";
-    exportDocument.body.style.background = "#ffffff";
-
-    const clone = element.cloneNode(true);
-
-    clone.removeAttribute("id");
-    clone.id = "cv-document-export";
-
-    Object.assign(clone.style, {
-      display: "block",
-      width: `${renderWidth}px`,
-      minWidth: `${renderWidth}px`,
-      maxWidth: `${renderWidth}px`,
-      minHeight: "0",
-      height: "auto",
-      boxSizing: "border-box",
-      margin: "0",
-      padding: `${pageMargin}mm`,
-      transform: "none",
-      boxShadow: "none",
-      border: "none",
-      overflow: "visible",
-      backgroundColor: "#ffffff",
-      color: "#0f172a",
-    });
-
-    clone
-      .querySelectorAll("button, input, select, textarea")
-      .forEach((node) => node.remove());
-
-    exportDocument.body.appendChild(clone);
-
-    await Promise.all(stylesheetLoads);
-
-    if (exportDocument.fonts?.ready) {
-      await exportDocument.fonts.ready;
-    }
-
-    // Wait for images in the cloned document.
-    await Promise.all(
-      Array.from(clone.querySelectorAll("img")).map((img) => {
-        if (img.complete) return Promise.resolve();
-
-        return new Promise((resolve) => {
-          img.onload = resolve;
-          img.onerror = resolve;
-        });
-      })
-    );
-
-    await new Promise((resolve) => {
-      exportWindow.requestAnimationFrame(() => {
-        exportWindow.requestAnimationFrame(resolve);
+      Object.assign(iframe.style, {
+        position: "fixed",
+        left: "-10000px",
+        top: "0",
+        width: `${renderWidth}px`,
+        height: "1200px",
+        border: "0",
+        visibility: "visible",
+        pointerEvents: "none",
       });
-    });
 
-    // Render at the desktop viewport width.
-    const canvas = await html2canvas(clone, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      logging: false,
-      windowWidth: renderWidth,
-      windowHeight: Math.max(
-        clone.scrollHeight,
-        1200
-      ),
-      width: renderWidth,
-      scrollX: 0,
-      scrollY: 0,
-    });
+      document.body.appendChild(iframe);
 
-    if (!canvas.width || !canvas.height) {
-      throw new Error("The CV produced an empty canvas.");
-    }
+      const exportDocument = iframe.contentDocument;
+      const exportWindow = iframe.contentWindow;
 
-    const safeName =
-      fullName
-        .trim()
-        .replace(/[^a-z0-9]/gi, "_")
-        .replace(/_+/g, "_")
-        .replace(/^_|_$/g, "") || "CV";
-
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: isA4 ? "a4" : "letter",
-      compress: true,
-    });
-
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    const renderedHeight =
-      (canvas.height * pdfWidth) / canvas.width;
-
-    const pageCount = Math.max(
-      1,
-      Math.ceil(renderedHeight / pdfHeight)
-    );
-
-    const imageData = canvas.toDataURL("image/jpeg", 0.95);
-
-    for (let page = 0; page < pageCount; page++) {
-      if (page > 0) {
-        pdf.addPage(isA4 ? "a4" : "letter", "portrait");
+      if (!exportDocument || !exportWindow) {
+        throw new Error("Could not create the export document.");
       }
 
-      pdf.addImage(
-        imageData,
-        "JPEG",
-        0,
-        -(page * pdfHeight),
-        pdfWidth,
-        renderedHeight,
-        undefined,
-        "FAST"
+      exportDocument.open();
+      exportDocument.write(
+        "<!doctype html><html><head><meta charset='UTF-8'></head><body></body></html>",
       );
-    }
+      exportDocument.close();
 
-    pdf.save(`${safeName}_CV.pdf`);
-    toast.success("CV exported successfully.");
-  } catch (error) {
-    console.error("PDF generation failed:", error);
-    toast.error("Unable to generate your CV. Please try again.");
-  } finally {
-    iframe?.remove();
-    setIsDownloading(false);
-  }
-};
+      // Copy the app's styles into the export document.
+      const stylesheetNodes = document.head.querySelectorAll(
+        'link[rel="stylesheet"], style',
+      );
+
+      const stylesheetLoads = [];
+
+      stylesheetNodes.forEach((node) => {
+        const copiedNode = node.cloneNode(true);
+
+        if (copiedNode.tagName === "LINK" && copiedNode.href) {
+          const loaded = new Promise((resolve) => {
+            copiedNode.onload = resolve;
+            copiedNode.onerror = resolve;
+          });
+
+          stylesheetLoads.push(loaded);
+        }
+
+        exportDocument.head.appendChild(copiedNode);
+      });
+
+      // Give the export page a desktop viewport.
+      exportDocument.documentElement.style.width = `${renderWidth}px`;
+
+      exportDocument.documentElement.style.minWidth = `${renderWidth}px`;
+
+      exportDocument.body.style.width = `${renderWidth}px`;
+      exportDocument.body.style.minWidth = `${renderWidth}px`;
+      exportDocument.body.style.margin = "0";
+      exportDocument.body.style.background = "#ffffff";
+
+      const clone = element.cloneNode(true);
+
+      clone.removeAttribute("id");
+      clone.id = "cv-document-export";
+
+      Object.assign(clone.style, {
+        display: "block",
+        width: `${renderWidth}px`,
+        minWidth: `${renderWidth}px`,
+        maxWidth: `${renderWidth}px`,
+        minHeight: "0",
+        height: "auto",
+        boxSizing: "border-box",
+        margin: "0",
+        padding: `${pageMargin}mm`,
+        transform: "none",
+        boxShadow: "none",
+        border: "none",
+        overflow: "visible",
+        backgroundColor: "#ffffff",
+        color: "#0f172a",
+      });
+
+      clone
+        .querySelectorAll("button, input, select, textarea")
+        .forEach((node) => node.remove());
+
+      exportDocument.body.appendChild(clone);
+
+      await Promise.all(stylesheetLoads);
+
+      if (exportDocument.fonts?.ready) {
+        await exportDocument.fonts.ready;
+      }
+
+      // Wait for images in the cloned document.
+      await Promise.all(
+        Array.from(clone.querySelectorAll("img")).map((img) => {
+          if (img.complete) return Promise.resolve();
+
+          return new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        }),
+      );
+
+      await new Promise((resolve) => {
+        exportWindow.requestAnimationFrame(() => {
+          exportWindow.requestAnimationFrame(resolve);
+        });
+      });
+
+      // Render at the desktop viewport width.
+      const canvas = await html2canvas(clone, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        windowWidth: renderWidth,
+        windowHeight: Math.max(clone.scrollHeight, 1200),
+        width: renderWidth,
+        scrollX: 0,
+        scrollY: 0,
+      });
+
+      if (!canvas.width || !canvas.height) {
+        throw new Error("The CV produced an empty canvas.");
+      }
+
+      const safeName =
+        fullName
+          .trim()
+          .replace(/[^a-z0-9]/gi, "_")
+          .replace(/_+/g, "_")
+          .replace(/^_|_$/g, "") || "CV";
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: isA4 ? "a4" : "letter",
+        compress: true,
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      const renderedHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      const pageCount = Math.max(1, Math.ceil(renderedHeight / pdfHeight));
+
+      const imageData = canvas.toDataURL("image/jpeg", 0.95);
+
+      for (let page = 0; page < pageCount; page++) {
+        if (page > 0) {
+          pdf.addPage(isA4 ? "a4" : "letter", "portrait");
+        }
+
+        pdf.addImage(
+          imageData,
+          "JPEG",
+          0,
+          -(page * pdfHeight),
+          pdfWidth,
+          renderedHeight,
+          undefined,
+          "FAST",
+        );
+      }
+
+      pdf.save(`${safeName}_CV.pdf`);
+      toast.success("CV exported successfully.");
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      toast.error("Unable to generate your CV. Please try again.");
+    } finally {
+      iframe?.remove();
+      setIsDownloading(false);
+    }
+  };
   const handleZoomIn = () => {
     setZoom((current) => Math.min(current + 10, 150));
   };
@@ -879,25 +865,48 @@ const handleDownloadPDF = async () => {
           PRINT STYLES
       ====================================================== */}
       <style>{`
-        @media print {
-          @page {
-            size: ${paper === "a4" ? "A4" : "Letter"};
-            margin: 0;
-          }
+  @media print {
+    @page {
+      size: ${paper === "a4" ? "A4" : "Letter"};
+      margin: 0;
+    }
 
-          body {
-            background: white !important;
-          }
+    html,
+    body {
+      margin: 0 !important;
+      padding: 0 !important;
+      background: #ffffff !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
 
-          #cv-document {
-            width: ${pageWidth} !important;
-            min-height: ${pageHeight} !important;
-            box-shadow: none !important;
-            border: none !important;
-            margin: 0 !important;
-          }
-        }
-      `}</style>
+    body * {
+      visibility: hidden;
+    }
+
+    #cv-document,
+    #cv-document * {
+      visibility: visible !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    #cv-document {
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: ${pageWidth} !important;
+      min-height: ${pageHeight} !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      box-sizing: border-box !important;
+      background: #ffffff !important;
+      box-shadow: none !important;
+      border: none !important;
+      overflow: visible !important;
+    }
+  }
+`}</style>
     </div>
   );
 }
