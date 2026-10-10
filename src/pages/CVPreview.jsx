@@ -233,6 +233,7 @@ export default function CVPreview() {
 
  
 
+
 const handleDownloadPDF = async () => {
   const element = document.getElementById("cv-document");
 
@@ -246,7 +247,6 @@ const handleDownloadPDF = async () => {
   try {
     setIsDownloading(true);
 
-    // Wait for web fonts.
     if (document.fonts?.ready) {
       await document.fonts.ready;
     }
@@ -254,7 +254,6 @@ const handleDownloadPDF = async () => {
     const isA4 = paper === "a4";
     const renderWidth = isA4 ? 794 : 816;
 
-    // Clone the CV so the visible preview remains unchanged.
     exportClone = element.cloneNode(true);
     exportClone.id = "cv-document-export";
 
@@ -279,14 +278,14 @@ const handleDownloadPDF = async () => {
       pointerEvents: "none",
     });
 
-    // Remove interactive controls from the exported CV.
+    // Remove interactive controls.
     exportClone
       .querySelectorAll("button, input, select, textarea")
       .forEach((node) => node.remove());
 
     document.body.appendChild(exportClone);
 
-    // Wait for browser layout and styles.
+    // Wait for the browser to calculate layout.
     await new Promise((resolve) => {
       requestAnimationFrame(() => {
         requestAnimationFrame(resolve);
@@ -305,38 +304,43 @@ const handleDownloadPDF = async () => {
       }),
     );
 
-    // Inspect computed styles before rendering.
-    const diagnosticElements = [
-      exportClone.querySelector("h1"),
-      exportClone.querySelector("h2"),
-      exportClone.querySelector("p"),
-      exportClone.querySelector("section"),
-    ].filter(Boolean);
+    // Inline the actual computed CSS on all elements.
+    inlineComputedStyles(exportClone);
 
-    console.table(
-      diagnosticElements.map((el) => {
-        const styles = window.getComputedStyle(el);
+    // Restore export container dimensions after inlining.
+    Object.assign(exportClone.style, {
+      position: "absolute",
+      top: "0",
+      left: "-10000px",
+      width: `${renderWidth}px`,
+      minWidth: `${renderWidth}px`,
+      maxWidth: `${renderWidth}px`,
+      height: "auto",
+      minHeight: "0",
+      margin: "0",
+      boxSizing: "border-box",
+      overflow: "visible",
+      transform: "none",
+      backgroundColor: "#ffffff",
+      pointerEvents: "none",
+    });
 
-        return {
-          tag: el.tagName,
-          className:
-            typeof el.className === "string"
-              ? el.className
-              : "",
-          fontSize: styles.fontSize,
-          fontWeight: styles.fontWeight,
-          fontFamily: styles.fontFamily,
-          color: styles.color,
-          display: styles.display,
-          backgroundColor: styles.backgroundColor,
-        };
-      }),
-    );
+    // Diagnostic: verify inline styles.
+    const heading = exportClone.querySelector("h1");
 
-    // Keep your existing color sanitization.
+    if (heading) {
+      console.log("Export heading after inlining:", {
+        fontSize: heading.style.fontSize,
+        fontWeight: heading.style.fontWeight,
+        fontFamily: heading.style.fontFamily,
+        color: heading.style.color,
+      });
+    }
+
+    // Preserve your existing color sanitizer.
     sanitizeColors(exportClone);
 
-    // Render the actual CV.
+    // Render the CV.
     const canvas = await html2canvas(exportClone, {
       scale: 2,
       useCORS: true,
@@ -356,11 +360,10 @@ const handleDownloadPDF = async () => {
 
     console.log("Canvas dimensions:", canvas.width, canvas.height);
 
-    // TEMPORARY DIAGNOSTIC:
-    // Download the canvas directly as PNG to isolate the problem.
+    // TEMPORARY DIAGNOSTIC: download the rendered canvas as PNG.
     const pngData = canvas.toDataURL("image/png");
-
     const testLink = document.createElement("a");
+
     testLink.download = "cvforge-actual-template-test.png";
     testLink.href = pngData;
 
@@ -368,7 +371,7 @@ const handleDownloadPDF = async () => {
     testLink.click();
     testLink.remove();
 
-    // Create a safe PDF filename.
+    // Generate a safe filename.
     const safeName =
       fullName
         .trim()
@@ -397,7 +400,6 @@ const handleDownloadPDF = async () => {
       Math.ceil(renderedHeight / pdfHeight),
     );
 
-    // Add each page of the CV.
     for (let page = 0; page < pageCount; page++) {
       if (page > 0) {
         pdf.addPage(isA4 ? "a4" : "letter", "portrait");
@@ -420,7 +422,6 @@ const handleDownloadPDF = async () => {
     toast.success("CV exported successfully.");
   } catch (error) {
     console.error("PDF generation failed:", error);
-
     toast.error("Unable to generate your CV. Please try again.");
   } finally {
     exportClone?.remove();
