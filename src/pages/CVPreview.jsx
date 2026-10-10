@@ -286,6 +286,28 @@ export default function CVPreview() {
         logging: true,
         useCORS: true,
       });
+      const diagnosticElements = [
+        exportClone.querySelector("h1"),
+        exportClone.querySelector("p"),
+        exportClone.querySelector("section"),
+      ].filter(Boolean);
+
+      console.table(
+        diagnosticElements.map((el) => {
+          const styles = window.getComputedStyle(el);
+
+          return {
+            tag: el.tagName,
+            className: el.className,
+            fontSize: styles.fontSize,
+            fontWeight: styles.fontWeight,
+            fontFamily: styles.fontFamily,
+            color: styles.color,
+            display: styles.display,
+            backgroundColor: styles.backgroundColor,
+          };
+        }),
+      );
 
       if (!canvas.width || !canvas.height) {
         throw new Error("The test canvas is empty.");
