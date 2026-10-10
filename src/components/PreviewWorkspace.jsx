@@ -2,6 +2,7 @@ import React from "react";
 import ModernTemplate from "./ModernTemplate";
 import ClassicTemplate from "./ClassicTemplate";
 import MinimalTemplate from "./MinimalTemplate";
+import ExecutiveTemplate from "./ExecutiveTemplate";
 
 const templateOptions = [
   {
@@ -71,6 +72,18 @@ const PreviewWorkspace = ({ cvData, zoom, setZoom, onOpenTemplateModal }) => {
             skills={skills}
           />
         )}
+
+
+        {selectedTemplate === "executive" && (
+          <ExecutiveTemplate
+            profile={profile}
+            experiences={experiences}
+            education={education}
+            skills={skills}
+          />
+        )}
+       
+
       </article>
 
       {/* Preview controls */}

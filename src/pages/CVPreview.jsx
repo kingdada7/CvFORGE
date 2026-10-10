@@ -19,6 +19,7 @@ import MinimalTemplate from "../components/MinimalTemplate";
 
 // Change this import path if your utility lives somewhere else.
 import { getCVData } from "../utils/cvStorage";
+import ExecutiveTemplate from "../components/ExecutiveTemplate";
 
 export default function CVPreview() {
   const navigate = useNavigate();
@@ -361,261 +362,341 @@ export default function CVPreview() {
               }}
             >
               <div
-  id="cv-document"
-  className="w-full border border-slate-200 bg-white shadow-xl"
-  style={{
-    minHeight: pageHeight,
-    boxSizing: "border-box",
-  }}
->
-  {selectedTemplate === "modern" && (
-    <ModernTemplate
-      profile={profile}
-      experiences={experiences}
-      education={education}
-      skills={skills}
-    />
-  )}
+                id="cv-document"
+                className="w-full border border-slate-200 bg-white shadow-xl"
+                style={{
+                  minHeight: pageHeight,
+                  boxSizing: "border-box",
+                }}
+              >
+                {selectedTemplate === "modern" && (
+                  <ModernTemplate
+                    profile={profile}
+                    experiences={experiences}
+                    education={education}
+                    skills={skills}
+                  />
+                )}
 
-  {selectedTemplate === "classic" && (
-    <ClassicTemplate
-      profile={profile}
-      experiences={experiences}
-      education={education}
-      skills={skills}
-    />
-  )}
+                {selectedTemplate === "classic" && (
+                  <ClassicTemplate
+                    profile={profile}
+                    experiences={experiences}
+                    education={education}
+                    skills={skills}
+                  />
+                )}
 
-  {selectedTemplate === "minimal" && (
-    <MinimalTemplate
-      profile={profile}
-      experiences={experiences}
-      education={education}
-      skills={skills}
-    />
-  )}
-</div>
+                {selectedTemplate === "minimal" && (
+                  <MinimalTemplate
+                    profile={profile}
+                    experiences={experiences}
+                    education={education}
+                    skills={skills}
+                  />
+                )}
+                {selectedTemplate === "executive" && (
+                  <ExecutiveTemplate
+                    profile={profile}
+                    experiences={experiences}
+                    education={education}
+                    skills={skills}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
         {/* ===================================================
             EXPORT PANEL
         ==================================================== */}
-        <div className="w-full min-w-0 print:hidden lg:w-[380px] lg:flex-shrink-0">
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
-            {/* Header */}
-            <div className="px-5 pt-5 pb-4 flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Download size={19} className="text-blue-600" />
 
-                  <h2 className="text-lg font-semibold text-slate-900">
-                    Export Your CV
-                  </h2>
+        {/* ===================================================
+    EXPORT PANEL — CVFORGE
+==================================================== */}
+        <div className="w-full min-w-0 print:hidden lg:w-[360px] lg:flex-shrink-0">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+            {/* HEADER */}
+            <div className="border-b border-slate-100 px-5 py-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#5146e5]/10">
+                      <Download size={19} className="text-[#5146e5]" />
+                    </div>
+
+                    <div>
+                      <h2 className="text-base font-bold tracking-tight text-slate-900">
+                        Export your CV
+                      </h2>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        Ready when you are.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                <p className="text-[13px] text-slate-500 mt-1">
-                  Choose your document format and page settings.
-                </p>
-              </div>
-
-              <span className="text-[10px] font-medium bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                CVForge
-              </span>
-            </div>
-
-            {/* Status */}
-            <div className="mx-5 mb-5 bg-blue-50 border border-blue-100 rounded-lg p-3">
-              <div className="flex items-center justify-between text-[13px] mb-1.5">
-                <div className="flex items-center gap-1.5 text-blue-700 font-medium">
-                  <Check size={15} className="text-emerald-500" />
-                  CV Ready
-                </div>
-
-                <span className="font-semibold text-blue-800">100%</span>
-              </div>
-
-              <div className="h-1.5 bg-blue-200 rounded-full overflow-hidden">
-                <div className="h-full w-full bg-blue-600 rounded-full" />
-              </div>
-
-              <p className="text-[11px] text-blue-700/80 mt-2 leading-snug">
-                Your CV is ready to export. You can download, print, or copy the
-                ATS-friendly text.
-              </p>
-            </div>
-
-            {/* DOCUMENT FORMAT */}
-            <div className="px-5 mb-5">
-              <h3 className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase mb-2.5">
-                Document Format
-              </h3>
-
-              <div className="grid grid-cols-2 gap-2.5">
-                <FormatButton
-                  active={format === "pdf"}
-                  onClick={() => setFormat("pdf")}
-                  title="PDF Document"
-                  description="Print-ready PDF document."
-                  icon={<FileText size={15} />}
-                />
-
-                <FormatButton
-                  active={format === "text"}
-                  onClick={() => setFormat("text")}
-                  title="Plain Text"
-                  description="ATS-friendly text format."
-                  icon={<FileText size={15} />}
-                />
-              </div>
-            </div>
-
-            {/* PAPER */}
-            <div className="px-5 mb-5">
-              <div className="flex justify-between items-center mb-2.5">
-                <h3 className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
-                  Paper Dimension
-                </h3>
-
-                <span className="text-[10px] text-slate-400">Standard</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => setPaper("a4")}
-                  className={`py-2.5 text-center text-[13px] font-medium rounded-md border transition-all ${
-                    paper === "a4"
-                      ? "border-blue-500 bg-blue-50 text-blue-800"
-                      : "border-slate-200 text-slate-700 hover:border-slate-300"
-                  }`}
-                >
-                  A4
-                  <span className="block text-[10px] font-normal mt-0.5">
-                    210 × 297 mm
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setPaper("us")}
-                  className={`py-2.5 text-center text-[13px] font-medium rounded-md border transition-all ${
-                    paper === "us"
-                      ? "border-blue-500 bg-blue-50 text-blue-800"
-                      : "border-slate-200 text-slate-700 hover:border-slate-300"
-                  }`}
-                >
-                  US Letter
-                  <span className="block text-[10px] font-normal mt-0.5">
-                    8.5 × 11"
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* MARGINS */}
-            <div className="px-5 mb-6">
-              <div className="flex justify-between items-center mb-2.5">
-                <h3 className="text-[11px] font-semibold tracking-wider text-slate-500 uppercase">
-                  Page Margins
-                </h3>
-
-                <span className="text-[10px] text-slate-400">
-                  {margins === "balanced" ? "18mm" : "12mm"}
+                <span className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold tracking-wide text-slate-500">
+                  CVFORGE
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="mt-4 flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2.5">
+                <Check size={16} className="shrink-0 text-emerald-600" />
+                <p className="text-xs font-medium text-emerald-800">
+                  Your CV is ready for export
+                </p>
+              </div>
+            </div>
+
+            {/* FORMAT */}
+            <div className="border-b border-slate-100 px-5 py-5">
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  File format
+                </h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  Choose how you want to save your CV.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <button
-                  onClick={() => setMargins("balanced")}
-                  className={`py-2.5 text-center text-[13px] font-medium rounded-md border transition-all ${
-                    margins === "balanced"
-                      ? "border-blue-500 bg-blue-50 text-blue-800"
-                      : "border-slate-200 text-slate-700 hover:border-slate-300"
+                  type="button"
+                  onClick={() => setFormat("pdf")}
+                  aria-pressed={format === "pdf"}
+                  className={`relative rounded-xl border p-3 text-left transition-all duration-200 ${
+                    format === "pdf"
+                      ? "border-[#5146e5] bg-[#5146e5]/[0.045] ring-1 ring-[#5146e5]/20"
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                   }`}
                 >
-                  Balanced
-                  <span className="block text-[10px] font-normal mt-0.5">
-                    18mm
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <div
+                      className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                        format === "pdf"
+                          ? "bg-[#5146e5]/10 text-[#5146e5]"
+                          : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      <FileText size={19} />
+                    </div>
+
+                    {format === "pdf" && (
+                      <Check size={15} className="text-[#5146e5]" />
+                    )}
+                  </div>
+
+                  <p className="mt-3 text-sm font-semibold text-slate-900">
+                    PDF document
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+                    For applications and printing
+                  </p>
                 </button>
 
                 <button
-                  onClick={() => setMargins("compact")}
-                  className={`py-2.5 text-center text-[13px] font-medium rounded-md border transition-all ${
-                    margins === "compact"
-                      ? "border-blue-500 bg-blue-50 text-blue-800"
-                      : "border-slate-200 text-slate-700 hover:border-slate-300"
+                  type="button"
+                  onClick={() => setFormat("text")}
+                  aria-pressed={format === "text"}
+                  className={`relative rounded-xl border p-3 text-left transition-all duration-200 ${
+                    format === "text"
+                      ? "border-[#5146e5] bg-[#5146e5]/[0.045] ring-1 ring-[#5146e5]/20"
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                   }`}
                 >
-                  Compact
-                  <span className="block text-[10px] font-normal mt-0.5">
-                    12mm
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <div
+                      className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                        format === "text"
+                          ? "bg-[#5146e5]/10 text-[#5146e5]"
+                          : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      <Copy size={18} />
+                    </div>
+
+                    {format === "text" && (
+                      <Check size={15} className="text-[#5146e5]" />
+                    )}
+                  </div>
+
+                  <p className="mt-3 text-sm font-semibold text-slate-900">
+                    Plain text
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+                    Easy to copy into applications
+                  </p>
                 </button>
               </div>
             </div>
 
-            {/* ACTIONS */}
-            <div className="px-5 pb-5 space-y-2.5">
+            {/* PAGE SETTINGS */}
+            <div className="space-y-5 border-b border-slate-100 px-5 py-5">
+              {/* PAPER SIZE */}
+              <div>
+                <div className="mb-2.5 flex items-center justify-between">
+                  <label className="text-sm font-semibold text-slate-900">
+                    Paper size
+                  </label>
+                  <span className="text-[11px] text-slate-400">
+                    Document layout
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: "a4", label: "A4", detail: "210 × 297 mm" },
+                    { value: "us", label: "US Letter", detail: "8.5 × 11 in" },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setPaper(option.value)}
+                      aria-pressed={paper === option.value}
+                      className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-3 text-left transition-colors ${
+                        paper === option.value
+                          ? "border-[#5146e5] bg-[#5146e5]/[0.04]"
+                          : "border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <div>
+                        <p className="text-xs font-semibold text-slate-800">
+                          {option.label}
+                        </p>
+                        <p className="mt-1 text-[10px] text-slate-500">
+                          {option.detail}
+                        </p>
+                      </div>
+
+                      <span
+                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                          paper === option.value
+                            ? "border-[#5146e5]"
+                            : "border-slate-300"
+                        }`}
+                      >
+                        {paper === option.value && (
+                          <span className="h-2 w-2 rounded-full bg-[#5146e5]" />
+                        )}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* MARGINS */}
+              <div>
+                <div className="mb-2.5 flex items-center justify-between">
+                  <label className="text-sm font-semibold text-slate-900">
+                    Page margins
+                  </label>
+                  <span className="text-[11px] text-slate-400">
+                    {margins === "balanced" ? "18 mm" : "12 mm"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    {
+                      value: "balanced",
+                      label: "Balanced",
+                      detail: "18 mm · More breathing room",
+                    },
+                    {
+                      value: "compact",
+                      label: "Compact",
+                      detail: "12 mm · More content",
+                    },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setMargins(option.value)}
+                      aria-pressed={margins === option.value}
+                      className={`rounded-lg border px-3 py-3 text-left transition-colors ${
+                        margins === option.value
+                          ? "border-[#5146e5] bg-[#5146e5]/[0.04]"
+                          : "border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold text-slate-800">
+                          {option.label}
+                        </span>
+
+                        {margins === option.value && (
+                          <Check
+                            size={14}
+                            className="shrink-0 text-[#5146e5]"
+                          />
+                        )}
+                      </div>
+
+                      <p className="mt-1.5 text-[10px] leading-relaxed text-slate-500">
+                        {option.detail}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* EXPORT ACTIONS */}
+            <div className="space-y-3 px-5 py-5">
               {format === "pdf" ? (
                 <button
+                  type="button"
                   onClick={handleDownloadPDF}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#5146e5] px-4 py-3.5 text-sm font-semibold text-white shadow-sm shadow-[#5146e5]/20 transition-all hover:bg-[#4338ca] active:scale-[0.99]"
                 >
                   <Download size={17} />
                   Download PDF
                 </button>
               ) : (
                 <button
+                  type="button"
                   onClick={handleCopyATS}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#5146e5] px-4 py-3.5 text-sm font-semibold text-white shadow-sm shadow-[#5146e5]/20 transition-all hover:bg-[#4338ca] active:scale-[0.99]"
                 >
-                  {copied ? (
-                    <>
-                      <Check size={17} />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={17} />
-                      Copy ATS Text
-                    </>
-                  )}
+                  {copied ? <Check size={17} /> : <Copy size={17} />}
+                  {copied ? "Copied successfully" : "Copy ATS text"}
                 </button>
               )}
 
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-2">
                 <button
+                  type="button"
                   onClick={handleCopyATS}
-                  className="py-2.5 border border-slate-200 rounded-lg text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"
+                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50"
                 >
                   <Copy size={15} />
-                  Copy ATS Text
+                  Copy text
                 </button>
 
                 <button
+                  type="button"
                   onClick={handlePrint}
-                  className="py-2.5 border border-slate-200 rounded-lg text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"
+                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50"
                 >
                   <Printer size={15} />
-                  Print
+                  Print CV
                 </button>
               </div>
-            </div>
 
-            {/* PRIVACY */}
-            <div className="mx-5 mb-5 bg-slate-50 border border-slate-200 rounded-lg p-3 flex gap-2.5">
-              <ShieldCheck
-                size={17}
-                className="text-slate-400 mt-0.5 flex-shrink-0"
-              />
+              {/* PRIVACY NOTE */}
+              <div className="flex items-start gap-2.5 rounded-xl bg-slate-50 p-3">
+                <ShieldCheck
+                  size={16}
+                  className="mt-0.5 shrink-0 text-slate-500"
+                />
 
-              <div className="text-[11px] text-slate-600 leading-snug">
-                <span className="font-medium text-slate-800">
-                  Client-Side CV Builder
-                </span>
-                <br />
-                Your CV data is processed in the browser while you build and
-                export your document.
+                <p className="text-[11px] leading-relaxed text-slate-500">
+                  <span className="font-semibold text-slate-700">
+                    Your privacy matters.
+                  </span>{" "}
+                  Your CV stays in your browser while you build and export it.
+                </p>
               </div>
             </div>
           </div>

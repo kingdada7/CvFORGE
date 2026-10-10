@@ -97,14 +97,13 @@ function TemplateModal({
                   <div className="mb-3 flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2 text-base font-bold sm:text-[17px]">
                       <span
-                        className={`h-2 w-2 shrink-0 rounded-full ${
-                          template.id === "modern"
-                            ? "bg-[#4f45e3]"
-                            : template.id === "classic"
-                              ? "bg-[#233044]"
-                              : template.id === "minimal"
-                                ? "bg-[#737887]"
-                                : "bg-[#1f3a5f]"
+                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+                          {
+                            modern: "bg-[#5146e5]",
+                            classic: "bg-[#233044]",
+                            minimal: "bg-[#737887]",
+                            executive: "bg-[#9a753e]",
+                          }[template.id] ?? "bg-[#1f3a5f]"
                         }`}
                       />
 
