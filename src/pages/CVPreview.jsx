@@ -231,160 +231,159 @@ export default function CVPreview() {
     });
   };
 
- 
-const handleDownloadPDF = async () => {
-  const element = document.getElementById("cv-document");
+  const handleDownloadPDF = async () => {
+    const element = document.getElementById("cv-document");
 
-  if (!element) {
-    toast.error("CV document was not found.");
-    return;
-  }
-
-  let exportClone;
-
-  try {
-    setIsDownloading(true);
-
-    if (document.fonts?.ready) {
-      await document.fonts.ready;
+    if (!element) {
+      toast.error("CV document was not found.");
+      return;
     }
 
-    const isA4 = paper === "a4";
-    const renderWidth = isA4 ? 794 : 816;
-    const pageMargin = margins === "balanced" ? 18 : 12;
+    let exportClone;
 
-    // Clone the CV into the existing document.
-    // This avoids copying stylesheets into a separate iframe.
-    exportClone = element.cloneNode(true);
+    try {
+      setIsDownloading(true);
 
-    exportClone.id = "cv-document-export";
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
 
-    Object.assign(exportClone.style, {
-      position: "fixed",
-      top: "0",
-      left: "0",
-      width: `${renderWidth}px`,
-      minWidth: `${renderWidth}px`,
-      maxWidth: `${renderWidth}px`,
-      height: "auto",
-      minHeight: "0",
-      margin: "0",
-      padding: `${pageMargin}mm`,
-      boxSizing: "border-box",
-      overflow: "visible",
-      transform: "none",
-      boxShadow: "none",
-      border: "none",
-      backgroundColor: "#ffffff",
-      color: "#0f172a",
-      zIndex: "-1",
-      pointerEvents: "none",
-    });
+      const isA4 = paper === "a4";
+      const renderWidth = isA4 ? 794 : 816;
+      const pageMargin = margins === "balanced" ? 18 : 12;
 
-    exportClone
-      .querySelectorAll("button, input, select, textarea")
-      .forEach((node) => node.remove());
+      // Clone the CV into the existing document.
+      // This avoids copying stylesheets into a separate iframe.
+      exportClone = element.cloneNode(true);
 
-    document.body.appendChild(exportClone);
+      exportClone.id = "cv-document-export";
 
-    // Wait for cloned images to finish loading.
-    await Promise.all(
-      Array.from(exportClone.querySelectorAll("img")).map((img) => {
-        if (img.complete) {
-          return Promise.resolve();
+      Object.assign(exportClone.style, {
+        position: "fixed",
+        top: "0",
+        left: "0",
+        width: `${renderWidth}px`,
+        minWidth: `${renderWidth}px`,
+        maxWidth: `${renderWidth}px`,
+        height: "auto",
+        minHeight: "0",
+        margin: "0",
+        padding: `${pageMargin}mm`,
+        boxSizing: "border-box",
+        overflow: "visible",
+        transform: "none",
+        boxShadow: "none",
+        border: "none",
+        backgroundColor: "#ffffff",
+        color: "#0f172a",
+        zIndex: "-1",
+        pointerEvents: "none",
+      });
+
+      exportClone
+        .querySelectorAll("button, input, select, textarea")
+        .forEach((node) => node.remove());
+
+      document.body.appendChild(exportClone);
+
+      // Wait for cloned images to finish loading.
+      await Promise.all(
+        Array.from(exportClone.querySelectorAll("img")).map((img) => {
+          if (img.complete) {
+            return Promise.resolve();
+          }
+
+          return new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        }),
+      );
+
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
+
+      // Allow the browser to lay out the export clone.
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(resolve);
+        });
+      });
+
+      const canvas = await html2canvas(exportClone, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        windowWidth: renderWidth,
+        windowHeight: Math.max(exportClone.scrollHeight, 1200),
+        width: renderWidth,
+        scrollX: 0,
+        scrollY: 0,
+      });
+
+      if (!canvas.width || !canvas.height) {
+        throw new Error("The CV produced an empty canvas.");
+      }
+      const testLink = document.createElement("a");
+      testLink.download = "cvforge-capture-test.png";
+      testLink.href = canvas.toDataURL("image/png");
+      testLink.click();
+
+      toast("Downloaded the capture test image. Check its styling.");
+      return;
+
+      const safeName =
+        fullName
+          .trim()
+          .replace(/[^a-z0-9]/gi, "_")
+          .replace(/_+/g, "_")
+          .replace(/^_|_$/g, "") || "CV";
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: isA4 ? "a4" : "letter",
+        compress: true,
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      const renderedHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      const pageCount = Math.max(1, Math.ceil(renderedHeight / pdfHeight));
+
+      const imageData = canvas.toDataURL("image/jpeg", 0.95);
+
+      for (let page = 0; page < pageCount; page++) {
+        if (page > 0) {
+          pdf.addPage(isA4 ? "a4" : "letter", "portrait");
         }
 
-        return new Promise((resolve) => {
-          img.onload = resolve;
-          img.onerror = resolve;
-        });
-      }),
-    );
-
-    if (document.fonts?.ready) {
-      await document.fonts.ready;
-    }
-
-    // Allow the browser to lay out the export clone.
-    await new Promise((resolve) => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(resolve);
-      });
-    });
-
-    const canvas = await html2canvas(exportClone, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      logging: false,
-      windowWidth: renderWidth,
-      windowHeight: Math.max(exportClone.scrollHeight, 1200),
-      width: renderWidth,
-      scrollX: 0,
-      scrollY: 0,
-    });
-
-    if (!canvas.width || !canvas.height) {
-      throw new Error("The CV produced an empty canvas.");
-    }
-
-    const safeName =
-      fullName
-        .trim()
-        .replace(/[^a-z0-9]/gi, "_")
-        .replace(/_+/g, "_")
-        .replace(/^_|_$/g, "") || "CV";
-
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: isA4 ? "a4" : "letter",
-      compress: true,
-    });
-
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    const renderedHeight =
-      (canvas.height * pdfWidth) / canvas.width;
-
-    const pageCount = Math.max(
-      1,
-      Math.ceil(renderedHeight / pdfHeight),
-    );
-
-    const imageData = canvas.toDataURL("image/jpeg", 0.95);
-
-    for (let page = 0; page < pageCount; page++) {
-      if (page > 0) {
-        pdf.addPage(
-          isA4 ? "a4" : "letter",
-          "portrait",
+        pdf.addImage(
+          imageData,
+          "JPEG",
+          0,
+          -(page * pdfHeight),
+          pdfWidth,
+          renderedHeight,
+          undefined,
+          "FAST",
         );
       }
 
-      pdf.addImage(
-        imageData,
-        "JPEG",
-        0,
-        -(page * pdfHeight),
-        pdfWidth,
-        renderedHeight,
-        undefined,
-        "FAST",
-      );
+      pdf.save(`${safeName}_CV.pdf`);
+      toast.success("CV exported successfully.");
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      toast.error("Unable to generate your CV. Please try again.");
+    } finally {
+      exportClone?.remove();
+      setIsDownloading(false);
     }
-
-    pdf.save(`${safeName}_CV.pdf`);
-    toast.success("CV exported successfully.");
-  } catch (error) {
-    console.error("PDF generation failed:", error);
-    toast.error("Unable to generate your CV. Please try again.");
-  } finally {
-    exportClone?.remove();
-    setIsDownloading(false);
-  }
-};
+  };
 
   const handleZoomIn = () => {
     setZoom((current) => Math.min(current + 10, 150));
