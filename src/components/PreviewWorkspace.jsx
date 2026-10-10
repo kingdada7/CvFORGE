@@ -17,6 +17,11 @@ const templateOptions = [
     id: "minimal",
     name: "Minimal",
   },
+
+  {
+    id: "executive",
+    name: "Executive",
+  }
 ];
 
 const PreviewWorkspace = ({ cvData, zoom, setZoom, onOpenTemplateModal }) => {
