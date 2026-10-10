@@ -239,86 +239,38 @@ export default function CVPreview() {
       return;
     }
 
-    let exportClone;
-
     try {
       setIsDownloading(true);
 
+      // Wait for fonts to finish loading.
       if (document.fonts?.ready) {
         await document.fonts.ready;
       }
 
-      const isA4 = paper === "a4";
-      const renderWidth = isA4 ? 794 : 816;
-      const pageMargin = margins === "balanced" ? 18 : 12;
-
-      // Clone the CV into the existing document.
-      // This avoids copying stylesheets into a separate iframe.
-      exportClone = element.cloneNode(true);
-
-      exportClone.id = "cv-document-export";
-
-      Object.assign(exportClone.style, {
-        position: "fixed",
-        top: "0",
-        left: "0",
-        width: `${renderWidth}px`,
-        minWidth: `${renderWidth}px`,
-        maxWidth: `${renderWidth}px`,
-        height: "auto",
-        minHeight: "0",
-        margin: "0",
-        padding: `${pageMargin}mm`,
-        boxSizing: "border-box",
-        overflow: "visible",
-        transform: "none",
-        boxShadow: "none",
-        border: "none",
-        backgroundColor: "#ffffff",
-        color: "#0f172a",
-        zIndex: "-1",
-        pointerEvents: "none",
-      });
-
-      exportClone
-        .querySelectorAll("button, input, select, textarea")
-        .forEach((node) => node.remove());
-
-      document.body.appendChild(exportClone);
-
-      // Wait for cloned images to finish loading.
-      await Promise.all(
-        Array.from(exportClone.querySelectorAll("img")).map((img) => {
-          if (img.complete) {
-            return Promise.resolve();
-          }
-
-          return new Promise((resolve) => {
-            img.onload = resolve;
-            img.onerror = resolve;
-          });
-        }),
-      );
-
-      if (document.fonts?.ready) {
-        await document.fonts.ready;
-      }
-
-      // Allow the browser to lay out the export clone.
+      // Wait for the browser to finish layout and painting.
       await new Promise((resolve) => {
         requestAnimationFrame(() => {
           requestAnimationFrame(resolve);
         });
       });
 
-      const canvas = await html2canvas(exportClone, {
+      const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
-        logging: false,
-        windowWidth: renderWidth,
-        windowHeight: Math.max(exportClone.scrollHeight, 1200),
-        width: renderWidth,
+        logging: true,
+
+        // Capture the actual preview element.
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+
+        // Preserve the current browser viewport for this diagnostic.
+        windowWidth: document.documentElement.clientWidth,
+        windowHeight: Math.max(
+          document.documentElement.clientHeight,
+          element.scrollHeight,
+        ),
+
         scrollX: 0,
         scrollY: 0,
       });
@@ -326,65 +278,21 @@ export default function CVPreview() {
       if (!canvas.width || !canvas.height) {
         throw new Error("The CV produced an empty canvas.");
       }
+
+      // Diagnostic only: check whether styling survives canvas rendering.
       const testLink = document.createElement("a");
-      testLink.download = "cvforge-capture-test.png";
+      testLink.download = "cvforge-original-capture.png";
       testLink.href = canvas.toDataURL("image/png");
       testLink.click();
 
-      toast("Downloaded the capture test image. Check its styling.");
-      return;
-
-      const safeName =
-        fullName
-          .trim()
-          .replace(/[^a-z0-9]/gi, "_")
-          .replace(/_+/g, "_")
-          .replace(/^_|_$/g, "") || "CV";
-
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: isA4 ? "a4" : "letter",
-        compress: true,
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-
-      const renderedHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      const pageCount = Math.max(1, Math.ceil(renderedHeight / pdfHeight));
-
-      const imageData = canvas.toDataURL("image/jpeg", 0.95);
-
-      for (let page = 0; page < pageCount; page++) {
-        if (page > 0) {
-          pdf.addPage(isA4 ? "a4" : "letter", "portrait");
-        }
-
-        pdf.addImage(
-          imageData,
-          "JPEG",
-          0,
-          -(page * pdfHeight),
-          pdfWidth,
-          renderedHeight,
-          undefined,
-          "FAST",
-        );
-      }
-
-      pdf.save(`${safeName}_CV.pdf`);
-      toast.success("CV exported successfully.");
+      toast.success("Capture generated. Check the PNG styling.");
     } catch (error) {
-      console.error("PDF generation failed:", error);
-      toast.error("Unable to generate your CV. Please try again.");
+      console.error("CV capture failed:", error);
+      toast.error("Unable to capture your CV. Please try again.");
     } finally {
-      exportClone?.remove();
       setIsDownloading(false);
     }
   };
-
   const handleZoomIn = () => {
     setZoom((current) => Math.min(current + 10, 150));
   };
